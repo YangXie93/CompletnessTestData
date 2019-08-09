@@ -37,7 +37,7 @@ vector<int> intervallOverlap(int start1, int end1,int start2,int end2){
 
 //[[Rcpp::export]]
 
-Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<list<vector<int> > > >& contigs){
+Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<list<vector<int> > > >& contigs,vector<int>& names){
 
     Rcpp::List res;
     Rcpp::IntegerVector id;
@@ -46,74 +46,61 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<list<vector<i
     int n = 0;
     for(list<list<list<vector<int> > > >::iterator con = contigs.begin();con != contigs.end();con++){
         Rcpp::List tmp;
+        int total = 0; 
+        int partial = 0;
+        vector<int> name;
         for(list<list<vector<int> > >::iterator cons = (*con).begin();cons != (*con).end();cons++){
-            Rcpp::List tmp2;
-            for(list<vector<int> >::iterator conts = (*cons).begin();conts != (*cons).end();conts = next(conts,2)){
-                list<list<vector<int> > >::iterator pi = pifams.begin();
-                int which = (*((*conts).begin()));
-                for(list<vector<int> >::iterator pis = (*next(pi,which)).begin();pis != (*next(pi,which)).end();pis = next(pis,2)){
-                    vector<int>::iterator starts = (*next(conts)).begin();
-                    vector<int>::iterator ends = (*next(conts,2)).begin();
-                    vector<int>::iterator values = (*next(pis)).begin();
-                    
-                    for(vector<int>::iterator width = (*pis).begin();width != (*pis).end();width++){
-                        if((*values) >= 0){
-                            vector<int> tmp = intervallOverlap(n,n+(*width),(*starts),(*ends));
-                            if((int) tmp.size() > 1){
-                                Rcpp::IntegerVector::iterator t = find(id.begin(),id.end(),(*values));
-                                if(t == id.end()){
-                                    baseNum.push_back(tmp[1] - tmp[0]);
-                                    times.push_back(1);
-                                    id.push_back((*values));
-                                }
-                                else{
-                                    times[((int) (t-id.begin()))]++;
-                                    baseNum[((int) (t-id.begin()))] += tmp[1] - tmp[0];
-                                }
-                            }
-                        }
-                        n += (*width);
+            int x = 0;
+            for(list<vector<int> >::iterator conts = (*cons).begin();conts != (*cons).end();conts = next(conts,3)){
+                name.push_back(*((*conts).begin()));
+                vector<int>::iterator trans = find(names.begin(),names.end(),*((*conts).begin()));
+                if(trans == names.end()){
+                    return res;
+                }
+                int transfer = distance(names.begin(),trans);
+                list<vector<int> >::iterator pis = (*next(pifams.begin(),transfer)).begin();
+                vector<int>::iterator starts = (*next(conts)).begin();
+                vector<int>::iterator ends = (*next(conts,2)).begin();
+                vector<int>::iterator values = (*next(pis)).begin();
+                for(vector<int>::iterator width = (*pis).begin();width != (*pis).end();width++){
+                    if(starts != (*next(conts)).end() && ends != (*next(conts,2)).end()){
                         if(n >= (*ends)){
+                            x += (*ends) -(*starts);
                             starts++;
                             ends++;
                         }
-                        values++;
                     }
-                    n = 0;
+                    if((*values) >= 0){
+                        vector<int> tmp = intervallOverlap(n,n+(*width),(*starts),(*ends));
+                        if((int) tmp.size() > 1){
+                            Rcpp::IntegerVector::iterator t = find(id.begin(),id.end(),(*values));
+                            if(t == id.end()){
+                                baseNum.push_back(tmp[1] - tmp[0]);
+                                times.push_back(1);
+                                id.push_back((*values));
+                            }
+                            else{
+                                times[((int) (t-id.begin()))]++;
+                                baseNum[((int) (t-id.begin()))] += tmp[1] - tmp[0];
+                            }
+                        }
+                    }
+                    n += (*width);
+                    values++;
                 }
-                if(cons != (*con).begin()){
-                    tmp2.push_back(Rcpp::List::create(Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum));
-                }
-                else{
-                    tmp2.push_back(Rcpp::List::create(Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum));
-                }
+                n = 0;
             }
-            tmp.push_back(tmp2);
+            total += x;
+            if(cons == (*con).begin()){
+                partial = x;
+                tmp = (Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum));
+            }
         }
-        con++;
+        tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum));
+        vector<double> completeness = {(double)partial/(double) total};
+        tmp.push_back(Rcpp::List::create(Rcpp::Named("completeness") = completeness));
         res.push_back(tmp);
     }
     return res;
 }
-
-
-
-
-Rcpp::List contPifams(list<list<vector<int> > >& pifams,list<list<list<vector<int> > > >& contigs){
-    
-    Rcpp::List res;
-    Rcpp::IntegerVector id;
-    Rcpp::IntegerVector times;
-    Rcpp::IntegerVector baseNum;
-    for(list<list<list<vector<int> > > >::iterator con = contigs.begin();con != contigs.end();con++){
-        for(list<list<vector<int> > >::iterator cons = (*con).begin();cons != (*con).end();cons++){
-            for(list<vector<int> >::iterator cont = (*cons).begin();cont != (*cons).end();cont++){
-                
-            }
-        }
-    }
-    
-    return res;
-}
-
 

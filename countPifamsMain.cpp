@@ -19,14 +19,14 @@ int main(){
 
 
     list<list<vector<int> > > pi;
-    list<list<vector<int> > > con;
+    list<list<list<vector<int> > > > con;
 
     for(int i = 0;i < 2;i++){
         a.push_back(va);
         a.push_back(vb);
     }
-    con.push_back(b);
-    con.push_back(b);
+    con.push_back(list<list<vector<int> > > {b});
+    con.push_back(list<list<vector<int> > > {b});
     pi.push_back(a);
 
     Rcpp::List res = countPifams(pi,con);

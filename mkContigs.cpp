@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
-//#include <Rcpp.h>
+#include <Rcpp.h>
 #include <random>
 #include <math.h>
 #include <stdlib.h>
@@ -36,7 +36,9 @@ vector<int> randomContigs(int minContigLength,int meanContigLength,int covering)
 //[[Rcpp::export]]
 
 vector<int> randomSpaces(int numSp,int free){
-
+    if(free <= 0){
+        return vector<int> (numSp,0);
+    }
     srand(time(NULL));
     vector<int > spaces;
     vector<int > tmp;
@@ -101,52 +103,52 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int>& le
 //[[Rcpp::plugins(cpp11)]]
 //[[Rcpp::export]]
 
-list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int seed = 0,bool sameContigLength = true){
+list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int seed = 0){
 
     srand(seed);
     list<list<list<vector<int> > > > res;
     int at = 0;
     vector<int>::iterator totLen = lengthSums.begin();
-    
+
     for(list<vector<int> >::iterator it = lengths.begin(); it != lengths.end();it++){
-        
         list<list<vector<int> > > tmp;
         vector<int> baseNrs;
         vector<int> indicies;
         int count = 0;
-        
+
         double partCovered = (1+ (rand() % 9))/10.0;
         baseNrs.push_back((int) ((*totLen) *partCovered));
         double compPart = (6+ (rand() % 4))/10.0;
         baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
-        
+
         vector<int> bigEnough;
         for(int n = 0;n < (int) lengthSums.size();n++){
             if(n != count && lengthSums[n] > (*prev(baseNrs.end()))){
                 bigEnough.push_back(n);
             }
         }
-        
+
         int index = bigEnough[rand() % (bigEnough.size() -1)];
         indicies.push_back(count);
         indicies.push_back(index);
         vector<int> chromBaseNrs;
-        
         for(int n = 0; n < (int) baseNrs.size();n++){
-            
+
             list<vector<int> > tmp2;
-            chromBaseNrs = fromWhichHowMany(minContigLength,(*totLen),(*next(it,indicies[n])),baseNrs[n]);
-            tmp.push_back(list<vector<int> > {vector<int> (1,indicies[n])});
-            for(int j = 0; j < (int) (*it).size();j++){
-                
-                vector<int> starts;
-                vector<int> ends;
-                vector<int> contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j]);
-                vector<int> spaces = randomSpaces((int)contigs.size() +1,(*it)[j] -chromBaseNrs[j]);
+            chromBaseNrs = fromWhichHowMany(minContigLength,(*totLen),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
+            int l = 0;
+            for(int j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
+                vector<int> contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l]);
+                vector<int> spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -chromBaseNrs[l]);
                 vector<int>::iterator co = contigs.begin();
                 vector<int>::iterator sp = spaces.begin();
-                
-                for(int n = 0;n < (int)contigs.size();n++){
+
+                vector<int> starts;
+                starts.reserve(contigs.size());
+                vector<int> ends;
+                ends.reserve(contigs.size());
+
+                for(int m = 0;m < (int)contigs.size();m++){
                     at += (*sp);
                     starts.push_back(at+1);
                     at += (*co);
@@ -154,10 +156,12 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
                     sp++;
                     co++;
                 }
-                
+
                 at = 0;
+                tmp2.push_back(vector<int> {(*next(lengths.begin(),indicies[n]))[j-1]});
                 tmp2.push_back(starts);
                 tmp2.push_back(ends);
+                l++;
             }
             tmp.push_back(tmp2);
             count++;
@@ -166,3 +170,4 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
     }
     return res;
 }
+
