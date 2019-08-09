@@ -40,28 +40,30 @@ vector<int> intervallOverlap(int start1, int end1,int start2,int end2){
 Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<list<vector<int> > > >& contigs,vector<int>& names){
 
     Rcpp::List res;
-    Rcpp::IntegerVector id;
-    Rcpp::IntegerVector times;
-    Rcpp::IntegerVector baseNum;
+    vector<int> id;
+    vector<int> times;
+    vector<int> baseNum;
     int n = 0;
+   
     for(list<list<list<vector<int> > > >::iterator con = contigs.begin();con != contigs.end();con++){
         Rcpp::List tmp;
         int total = 0; 
         int partial = 0;
-        vector<int> name;
+       
         for(list<list<vector<int> > >::iterator cons = (*con).begin();cons != (*con).end();cons++){
-            int x = 0;
+            vector<int> name;
+            
             for(list<vector<int> >::iterator conts = (*cons).begin();conts != (*cons).end();conts = next(conts,3)){
+                
+                int x = 0;
                 name.push_back(*((*conts).begin()));
                 vector<int>::iterator trans = find(names.begin(),names.end(),*((*conts).begin()));
-                if(trans == names.end()){
-                    return res;
-                }
                 int transfer = distance(names.begin(),trans);
                 list<vector<int> >::iterator pis = (*next(pifams.begin(),transfer)).begin();
                 vector<int>::iterator starts = (*next(conts)).begin();
                 vector<int>::iterator ends = (*next(conts,2)).begin();
                 vector<int>::iterator values = (*next(pis)).begin();
+                
                 for(vector<int>::iterator width = (*pis).begin();width != (*pis).end();width++){
                     if(starts != (*next(conts)).end() && ends != (*next(conts,2)).end()){
                         if(n >= (*ends)){
@@ -73,7 +75,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<list<vector<i
                     if((*values) >= 0){
                         vector<int> tmp = intervallOverlap(n,n+(*width),(*starts),(*ends));
                         if((int) tmp.size() > 1){
-                            Rcpp::IntegerVector::iterator t = find(id.begin(),id.end(),(*values));
+                            vector<int>::iterator t = find(id.begin(),id.end(),(*values));
                             if(t == id.end()){
                                 baseNum.push_back(tmp[1] - tmp[0]);
                                 times.push_back(1);
@@ -88,17 +90,30 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<list<vector<i
                     n += (*width);
                     values++;
                 }
+                total += n;
+                partial += x;
+                Rcpp::Rcout << "partial: " << partial << " | total: "<< total << "| calculated: "<< (double)partial/total << endl;
                 n = 0;
+                x = 0;
             }
-            total += x;
             if(cons == (*con).begin()){
-                partial = x;
-                tmp = (Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum));
+                vector<double> completeness = {(double)partial/(double) total};
+                tmp = (Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum,Rcpp::Named("completness") = completeness));
+                name.clear();
+                id.clear();
+                baseNum.clear();
+                times.clear();
+                partial = 0;
+                total = 0;
+            }
+            else{
+                tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum));
+                name.clear();
+                id.clear();
+                baseNum.clear();
+                times.clear();
             }
         }
-        tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum));
-        vector<double> completeness = {(double)partial/(double) total};
-        tmp.push_back(Rcpp::List::create(Rcpp::Named("completeness") = completeness));
         res.push_back(tmp);
     }
     return res;

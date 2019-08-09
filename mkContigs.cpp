@@ -116,7 +116,7 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         vector<int> indicies;
         int count = 0;
 
-        double partCovered = (1+ (rand() % 9))/10.0;
+        double partCovered = (6+ (rand() % 4))/10.0;
         baseNrs.push_back((int) ((*totLen) *partCovered));
         double compPart = (6+ (rand() % 4))/10.0;
         baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
@@ -148,13 +148,24 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
                 vector<int> ends;
                 ends.reserve(contigs.size());
 
-                for(int m = 0;m < (int)contigs.size();m++){
+                bool swtch = true;
+                for(int n = 0;n < (int)contigs.size();n++){
                     at += (*sp);
-                    starts.push_back(at+1);
+                    if(swtch){
+                        starts.push_back(at+1);
+                    }
                     at += (*co);
-                    ends.push_back(at);
                     sp++;
                     co++;
+                    if((*sp) > 0){
+                        ends.push_back(at);
+                    }
+                    else{
+                      swtch = false;
+                    }
+                }
+                if(ends.size() == 0){
+                    ends.push_back(at);
                 }
 
                 at = 0;
@@ -170,4 +181,3 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
     }
     return res;
 }
-

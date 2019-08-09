@@ -41,16 +41,19 @@ for(j in 1:length(con)){
     pifams[[length(pifams)+1]] = pis
 }
 
+name = names(con)
+
 contigs1 = list()
-for(i in 1:length(con)){
+for(i in seq(1,length(con)-1,2)){
     cons = list()
     conts = list()
-    for(j in 1:1){
-        conts[[j]] = i +j -1
-        conts[[j+1]] = c(1)
-        conts[[j+2]] = c(sum(con[[i +j -1]]$GENOME[[1]]@lengths))
-    }
-    cons[[1]] = conts
+    conts[[length(conts)+1]] = as.integer(name[i])
+    conts[[length(conts)+1]] = c(1)
+    conts[[length(conts)+1]] = c(sum(con[[i]]$GENOME[[1]]@lengths))
+    conts[[length(conts)+1]] = as.integer(name[i+1])
+    conts[[length(conts)+1]] = c(1)
+    conts[[length(conts)+1]] = c(sum(con[[i+1]]$GENOME[[1]]@lengths))
+    cons[[length(cons)+1]] = conts
     contigs1[[length(contigs1)+1]] = cons
 }
 
