@@ -32,16 +32,23 @@ for(i in seq(1,length(con),2)){
 con = readRDS("~/Downloads/IDz_1_0.Rds")
 
 pifams = list()
+ORF = list()
 for(j in 1:length(con)){
     pis = list()
+    orf = list()
     for(i in 1:length(con[[j]]$GENOME)){
-        pis[[length(pis)+1]] = con[[1]]$GENOME[[i]]@lengths
-        pis[[length(pis)+1]] = con[[1]]$GENOME[[i]]@values
+        pis[[length(pis)+1]] = con[[j]]$GENOME[[i]]@lengths
+        pis[[length(pis)+1]] = con[[j]]$GENOME[[i]]@values
+        orf[[length(orf)+1]] = con[[j]]$ORF[[i]]@lengths
+        orf[[length(orf)+1]] = con[[j]]$ORF[[i]]@values
     }
     pifams[[length(pifams)+1]] = pis
+    ORF[[length(ORF)+1]] = orf
 }
 
-name = names(con)
+
+
+name = as.integer(names(con))
 
 contigs1 = list()
 for(i in seq(1,length(con)-1,2)){

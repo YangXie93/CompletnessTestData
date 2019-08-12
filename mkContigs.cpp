@@ -117,8 +117,12 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         vector<int> indicies;
 
         double partCovered = (60+ (rand() % 40))/100.0;
+        Rcpp::Rcout << "completeness: " << partCovered << endl;
+        Rcpp::Rcout << "--------------" << endl;
         baseNrs.push_back((int) ((*totLen) *partCovered));
         double compPart = (60+ (rand() % 40))/100.0;
+        Rcpp::Rcout << "contamination: " << 1-compPart << endl;
+        Rcpp::Rcout << "--------------" << endl;
         baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
         vector<int> bigEnough;
         for(int n = 0;n < (int) lengthSums.size();n++){

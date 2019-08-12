@@ -14,6 +14,7 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
             if(length(n) > 0 && n != 0){
                 if(name[n] != tmp[length(tmp)]){
                     tmp[length(tmp)+1] = name[n]
+                    print(tmp[length(tmp)])
                 }
                 else{
                     flag = FALSE
@@ -52,6 +53,7 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
         pifams[[length(pifams)+1]] = tmp3
         Orfs[[length(Orfs)+1]] = tmp4
     }
+    print(1)
     conts = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,seed)
     res = countPifams(pifams,Orfs,conts,as.integer(ID))
     return(res)
