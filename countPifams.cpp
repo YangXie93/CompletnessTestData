@@ -100,7 +100,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                                         starts++;
                                         ends++;
                                     }
-                                    else{
+                                    else{                                       // hier und
                                         n+= (*width);
                                         width++;
                                         values++;
@@ -112,7 +112,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                                 values++;
                                 width++;
                             }
-                            else{
+                            else{                                               // oder hier
                                 o+= (*orfWidths);
                                 orfWidths++;
                                 orfValues++;
