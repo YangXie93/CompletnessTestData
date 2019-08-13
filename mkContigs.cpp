@@ -14,6 +14,9 @@ using namespace std;
 //[[Rcpp::export]]
 
 vector<int> randomContigs(int minContigLength,int meanContigLength,int covering){
+    if(covering <= minContigLength){
+        return vector<int> (1,covering);
+    }
     vector<int> res;
     default_random_engine generator;
     poisson_distribution<int> distribution(meanContigLength -minContigLength);
@@ -117,13 +120,24 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         vector<int> indicies;
 
         double partCovered = (60+ (rand() % 40))/100.0;
-        Rcpp::Rcout << "completeness: " << partCovered << endl;
-        Rcpp::Rcout << "--------------" << endl;
-        baseNrs.push_back((int) ((*totLen) *partCovered));
+        if((*totLen)* partCovered < minContigLength){
+            if((*totLen) < minContigLength){
+                baseNrs.push_back((*totLen));
+            }
+            else{
+                baseNrs.push_back(minContigLength);
+            }
+        }
+        else{
+            baseNrs.push_back((int) ((*totLen) *partCovered));
+        }
         double compPart = (60+ (rand() % 40))/100.0;
-        Rcpp::Rcout << "contamination: " << 1-compPart << endl;
-        Rcpp::Rcout << "--------------" << endl;
-        baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
+        if((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))) <= minContigLength){
+            baseNrs.push_back(minContigLength);
+        }
+        else{
+            baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
+        }
         vector<int> bigEnough;
         for(int n = 0;n < (int) lengthSums.size();n++){
             if(n != which && lengthSums[n] > (*prev(baseNrs.end()))){
@@ -149,10 +163,6 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
                 starts.reserve(contigs.size());
                 vector<int> ends;
                 ends.reserve(contigs.size());
-                int toPrint = 0;
-                for(vector<int>::iterator cntg = co;cntg != contigs.end();cntg++){
-                    toPrint += (*cntg);
-                }
                 bool swtch = true;
                 for(int n = 0;n < (int)contigs.size();n++){
                     at += (*sp);
