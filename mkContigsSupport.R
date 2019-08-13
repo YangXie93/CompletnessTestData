@@ -82,4 +82,30 @@ timeCountPifams <- function(listA,listB,names,times){
 
 #---------- test completenessTestData --------------------------
 
-cat = data.table::data.table(GI.Vec = names(con)[seq(1,length(con),2)],comb = names(con)[seq(2,length(con),2)])
+
+
+testRes <- function(data,res){
+    link = as.integer(names(data))
+    r = c()
+    tmp = c()
+    for(i in 1:length(res)){
+        lnk = which(link == res[[i]][[1]]$compChromID)
+        for(j in 1:length(data[[lnk]]$GENOME)){
+            tmp = append(tmp,data[[lnk]]$GENOME[[j]]@values)
+        }
+        print(length(res[[i]][[1]]$compPifamNames) < (length(unique(tmp)) -1))
+        r[i] = (length(res[[i]][[1]]$compPifamNames) == (length(unique(tmp)) -1))
+    }
+    return(r)
+}
+
+
+
+
+for(j in 1:length(data[[1]]$GENOME)){
+    tmp = append(tmp,data[[1]]$GENOME[[j]]@values)
+}
+
+
+
+

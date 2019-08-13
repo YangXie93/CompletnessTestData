@@ -65,3 +65,18 @@ timeCompletenessTestData <- function(times,data,catalogue,minContigLength,meanCo
 
     print(Sys.time() - time)
 }
+
+meanTimeCompletenessTestData <- function(meanTime,times,data,catalogue,minContigLength,meanContigLength,seed = 0){
+    mn = c()
+    for(i in 1:meanTime){    
+        time = Sys.time()
+        
+        x = completenessTestData(data,catalogue,minContigLength,meanContigLength,times,seed)
+        
+        mn[i] = Sys.time() - time
+    }
+    res = list()
+    res[[1]] = mean(mn)
+    res[[2]] = sd(mn)
+    return(res)
+}

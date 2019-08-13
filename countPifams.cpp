@@ -44,6 +44,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
     vector<int> times;
     vector<int> baseNum;
     vector<bool> notInOrf;
+    vector<int> name;
     
     for(list<list<list<vector<int> > > >::iterator con = contigs.begin();con != contigs.end();con++){
        
@@ -53,10 +54,8 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
         int contTotal = 0;
         
         for(list<list<vector<int> > >::iterator cons = (*con).begin();cons != (*con).end();cons++){
-            vector<int> name;
             
             for(list<vector<int> >::iterator conts = (*cons).begin();conts != (*cons).end();conts = next(conts,3)){
-                
                 int o = 0;
                 int n = 0;
                 int x = 0;
@@ -74,7 +73,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                         t += (*e)-(*s);
                         e++;
                     }
-                    if(conts == (*cons).begin()){
+                    if(cons == (*con).begin()){
                         partial = t;
                     }
                     contTotal += t;
@@ -134,14 +133,10 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                                         
                                         swtch = true;
                                     }
-                                    if((n+(*width)) >= (o+(*orfWidths))){
-                                        swtch = false;
-                                    }
-                                    else{
-                                        n += (*width);
-                                        values++;
-                                        width++;
-                                    }
+
+                                    n += (*width);
+                                    values++;
+                                    width++;
                                     
                                 }
                                 swtch = true;
@@ -158,29 +153,37 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                     //ende alle 6 GENOME und ORF Werte
                     
                 }
+                if(cons == (*con).begin()){
+                    tmp.push_back(Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum));
+                    name.clear();
+                    id.clear();
+                    baseNum.clear();
+                    times.clear();
+                    notInOrf.clear();
+                }
+                else{
+                    tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum));
+                    name.clear();
+                    id.clear();
+                    baseNum.clear();
+                    times.clear();
+                    notInOrf.clear();
+                }
             }
+            //ende alle Chromosomen
+
             if(cons == (*con).begin()){
                 vector<double> completeness = {(double)partial/(double) total};
-                tmp = (Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum,Rcpp::Named("completness") = completeness));
-                name.clear();
-                id.clear();
-                baseNum.clear();
-                times.clear();
-                notInOrf.clear();
+                tmp.push_back(Rcpp::List::create(Rcpp::Named("completness") = completeness));
             }
             else{
                 vector<double> contamination = {((double)partial/(double)contTotal)};
-                tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum,Rcpp::Named("contamination") = contamination));
-                name.clear();
-                id.clear();
-                baseNum.clear();
-                times.clear();
-                notInOrf.clear();
+                tmp.push_back(Rcpp::List::create(Rcpp::Named("contamination") = contamination));
             }
+        
         }
-        total = 0;
-        contTotal = 0;
-        partial = 0;
+        
+        //ende alle Genome
         res.push_back(tmp);
     }
     return res;
