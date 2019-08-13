@@ -57,8 +57,8 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
             
             for(list<vector<int> >::iterator conts = (*cons).begin();conts != (*cons).end();conts = next(conts,3)){
                 
-                int o = 1;
-                int n = 1;
+                int o = 0;
+                int n = 0;
                 int x = 0;
                 name.push_back(*((*conts).begin()));
                 vector<int>::iterator trans = find(names.begin(),names.end(),*((*conts).begin()));
@@ -77,8 +77,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                     if(conts == (*cons).begin()){
                         partial = t;
                     }
-                    contTotal += partial;
-                    Rcpp::Rcout << "Contig Length: " << contTotal << endl;
+                    contTotal += t;
                     for(list<vector<int> >::iterator pis = (*next(pifams.begin(),transfer)).begin();pis != (*next(pifams.begin(),transfer)).end();pis = next(pis,2)){
                         // für alle 6 GENOME und ORF Werte
                         
@@ -88,25 +87,27 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                         vector<int>::iterator width = (*pis).begin();
                         vector<int>::iterator values = (*next(pis)).begin();
                         vector<int>::iterator orfValues = (*next(orfs)).begin();
-                        int test = 0;
+                        
+
+                        bool swtch = true;
                         for(vector<int>::iterator orfWidths = (*orfs).begin(); distance(orfWidths,(*orfs).end()) > 0; orfWidths++){
                             //für alle Length Werte in ORF
                             if(starts != (*next(conts)).end()){
-                                while(width != (*pis).end() && orfWidths != (*orfs).end() && o+(*orfWidths) > n){
+                                
+                                while(width != (*pis).end() && o+(*orfWidths) > n && swtch){
                                     
                                     
                                     if((*orfValues) >= 0){
                                         for(int i = 0;i < (int) notInOrf.size();i++){
                                             notInOrf[i] = true;
                                         }
-                                        while(starts != (*next(conts)).end() && width != (*pis).end() && n+(*width) > (*starts)){
+                                        while(starts != (*next(conts)).end() && n+(*width) > (*starts) && swtch){
                                             
                                             if((*values) >= 0){
                                                 vector<int> tmp = intervallOverlap(n,n+(*width),(*starts),(*ends));
                                                 if((int) tmp.size() > 1){
                                                     vector<int>::iterator t = find(id.begin(),id.end(),(*values));
                                                     if(t == id.end()){
-                                                        test++;
                                                         baseNum.push_back(tmp[1] - tmp[0]);
                                                         times.push_back(1);
                                                         id.push_back((*values));
@@ -121,26 +122,36 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                                                     }
                                                 }
                                             }
-                                            x += (*ends) -(*starts);
-                                            starts++;
-                                            ends++;
+                                            if((*ends) >= (n+(*width))){
+                                                swtch = false;
+                                            }
+                                            else{
+                                                x += (*ends) -(*starts);
+                                                starts++;
+                                                ends++;
+                                            }
                                         }
                                         
-                                        
+                                        swtch = true;
                                     }
-                                    n += (*width);
-                                    values++;
-                                    width++;
+                                    if((n+(*width)) >= (o+(*orfWidths))){
+                                        swtch = false;
+                                    }
+                                    else{
+                                        n += (*width);
+                                        values++;
+                                        width++;
+                                    }
+                                    
                                 }
+                                swtch = true;
                             }
                             o += (*orfWidths);
                             orfValues++;
                         }
                         //end alle Length Werte aus ORF
-                        Rcpp::Rcout << "X: " << x << " n: " << n << " o: " << o << endl;
-                        Rcpp::Rcout << "res size: " << id.size() << " should be: "<< test << endl;
-                        o = 1;
-                        n = 1;
+                        o = 0;
+                        n = 0;
                         x = 0;
                         orfs = next(orfs,2);
                     }
@@ -148,8 +159,6 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                     
                 }
             }
-            
-            Rcpp::Rcout << "---------------------------------------------" << endl;
             if(cons == (*con).begin()){
                 vector<double> completeness = {(double)partial/(double) total};
                 tmp = (Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum,Rcpp::Named("completness") = completeness));
