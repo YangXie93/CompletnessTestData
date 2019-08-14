@@ -70,24 +70,24 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                     vector<int>::iterator e = (*next(conts,2)).begin();
                     int t = 0;
                     for(vector<int>::iterator s = (*next(conts)).begin();s != (*next(conts)).end();s++){
-                        t += (*e)-(*s);
+                        t += (*e)-(*s) +1;
                         e++;
                     }
                     if(cons == (*con).begin()){
-                        partial = t;
+                        partial += t;
                     }
                     contTotal += t;
+                    list<vector<int> >::iterator orfs = (*next(ORFs.begin(),transfer)).begin();
+                    
                     for(list<vector<int> >::iterator pis = (*next(pifams.begin(),transfer)).begin();pis != (*next(pifams.begin(),transfer)).end();pis = next(pis,2)){
                         // für alle 6 GENOME und ORF Werte
                         
-                        list<vector<int> >::iterator orfs = (*next(ORFs.begin(),transfer)).begin();
                         vector<int>::iterator starts = (*next(conts)).begin();
                         vector<int>::iterator ends = (*next(conts,2)).begin();
                         vector<int>::iterator width = (*pis).begin();
                         vector<int>::iterator values = (*next(pis)).begin();
                         vector<int>::iterator orfValues = (*next(orfs)).begin();
                         
-
                         bool swtch = true;
                         for(vector<int>::iterator orfWidths = (*orfs).begin(); distance(orfWidths,(*orfs).end()) > 0; orfWidths++){
                             //für alle Length Werte in ORF
