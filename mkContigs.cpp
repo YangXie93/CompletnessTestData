@@ -19,10 +19,10 @@ vector<int> randomContigs(int minContigLength,int meanContigLength,int covering)
     }
     vector<int> res;
     default_random_engine generator;
-    poisson_distribution<int> distribution(meanContigLength -minContigLength);
+    poisson_distribution<int> distribution(meanContigLength);
     int tmp;
     while(covering > 0){
-        tmp = distribution(generator) +minContigLength;
+        tmp = distribution(generator);
         distribution.reset();
         if(tmp >= covering){
             res.push_back(covering);
@@ -84,7 +84,7 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int>& le
     res.reserve(lengths.size());
     int share;
     int tmp;
-    for(vector<int>::iterator it = next(lengths.begin());it != lengths.end();it++){
+    for(vector<int>::iterator it = next(lengths.begin());distance(it,lengths.end()) > 0;it = next(it,2)){
         if((*it) >= minContigLength){
             share = round(needed *((*it)/(double)totalLength));
             poisson_distribution<int> distribution(share);
