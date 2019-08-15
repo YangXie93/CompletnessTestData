@@ -10,8 +10,8 @@ timeMkContigs <- function(times,y,z){
 
 checkForZeroLength <- function(y){
     for(i in 1:length(y)){
-        for(j in 1:length(y[[i]])){
-            if( length(y[[i]][[j]]) == 0){
+        for(j in seq(1,length(y[[i]]),2)){
+            if( length(y[[i]][[j]][[2]]) == 0){
                 print(paste("bei:",i,"bei",j))
             }
         }

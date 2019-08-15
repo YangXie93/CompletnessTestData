@@ -8,31 +8,61 @@
 #include <time.h>
 #include <numeric>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 
 //[[Rcpp::export]]
 
-vector<int> randomContigs(int minContigLength,int meanContigLength,int covering){
+vector<int> randomContigs(int minContigLength,int meanContigLength,int covering,string distr = "normal",int seed = 0){
     if(covering <= minContigLength){
         return vector<int> (1,covering);
     }
-    vector<int> res;
     default_random_engine generator;
-    poisson_distribution<int> distribution(meanContigLength);
-    int tmp;
+    generator.seed(seed);
+    normal_distribution<double> normDist(meanContigLength,sqrt(meanContigLength));
+    poisson_distribution<int> poisDist(meanContigLength);
+    exponential_distribution<double> expDist(meanContigLength);
+    uniform_int_distribution<int> uniformDist(minContigLength,meanContigLength*2);
+    vector<int> res;
+    int tmp = 0;
     while(covering > 0){
-        tmp = distribution(generator);
-        distribution.reset();
+        if(distr == "poisson" || distr == "normal" || distr == "exponential" || distr == "uniform"){
+            if(distr == "poisson"){
+                tmp = (int) poisDist(generator);
+                poisDist.reset();
+            }
+            if(distr == "normal"){
+                tmp = (int) normDist(generator);
+                normDist.reset();
+            }
+            if(distr == "exponential"){
+                tmp = (int) expDist(generator);
+                expDist.reset();
+            }
+            if(distr == "uniform"){
+                tmp = (int) uniformDist(generator);
+                uniformDist.reset();
+            }
+        }
+        else{
+            Rcpp::Rcerr << "die gewählte verteilung steht nicht zur wahl." << endl << "verfügbar sind: \"normal\", \"poisson\",\"exponential\" und \"uniform\" " << endl;
+            Rcpp::Rcerr << "Das Programm wird jetzt mit einer Normal verteilung fortgesetzt." << endl;
+            tmp = (int) normDist(generator);
+            normDist.reset();
+        }
         if(tmp >= covering){
             res.push_back(covering);
             covering = 0;
         }
         else{
-            covering -= tmp;
-            res.push_back(tmp);
+            if(tmp > 0){
+                covering -= tmp;
+                res.push_back(tmp);
+            }
         }
     }
+    Rcpp::Rcout << "RandCont: how many: " << res.size() << endl;
     return res;
 }
 
@@ -99,6 +129,8 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int>& le
         }
 
     }
+    Rcpp::Rcout << "FWHM: needed: " << needed << " Nr.: " << res[0] << endl;
+    
     return res;
 }
 
@@ -106,20 +138,25 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int>& le
 //[[Rcpp::plugins(cpp11)]]
 //[[Rcpp::export]]
 
-list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,int seed = 0){
+list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,int seed = 0,string distr = "normal"){
 
+    default_random_engine generator;
+    generator.seed(seed);
     srand(seed);
     list<list<list<vector<int> > > > res;
     int at = 0;
 
+    
     for(int i = 0; i < number; i++){
-        int which = rand() % (int) lengths.size();
+        Rcpp::Rcout << "At: " << i << endl;
+        int which = generator() % lengths.size();
         vector<int>::iterator totLen = next(lengthSums.begin(),which);
         list<list<vector<int> > > tmp;
         vector<int> baseNrs;
         vector<int> indicies;
 
         double partCovered = (60+ (rand() % 40))/100.0;
+        Rcpp::Rcout << "completeness: " << partCovered << endl;
         if((*totLen)* partCovered < minContigLength){
             if((*totLen) < minContigLength){
                 baseNrs.push_back((*totLen));
@@ -132,7 +169,9 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
             baseNrs.push_back((int) ((*totLen) *partCovered));
         }
         double compPart = (60+ (rand() % 40))/100.0;
+        Rcpp::Rcout << "contamination: " << 1- compPart << endl;
         if((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))) <= minContigLength){
+            Rcpp::Rcout << "entschuldigt!" << endl;
             baseNrs.push_back(minContigLength);
         }
         else{
@@ -148,6 +187,7 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         int index = bigEnough[rand() % (bigEnough.size() -1)];
         indicies.push_back(which);
         indicies.push_back(index);
+        Rcpp::Rcout<< "index1: "  << which << " index2: " << index << endl;
         vector<int> chromBaseNrs;
         for(int n = 0; n < (int) baseNrs.size();n++){
 
@@ -155,7 +195,7 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
             chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
             int l = 0;
             for(int j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
-                vector<int> contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l]);
+                vector<int> contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed);
                 vector<int> spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -chromBaseNrs[l]);
                 vector<int>::iterator co = contigs.begin();
                 vector<int>::iterator sp = spaces.begin();
@@ -191,7 +231,20 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
             }
             tmp.push_back(tmp2);
         }
+        Rcpp::Rcout << endl;
         res.push_back(tmp);
     }
     return res;
+}
+
+
+//[[Rcpp::export]]
+
+
+void testRand(int times,int seed){
+    srand(seed);
+    for(int i = 0;i < times;i++){
+        int x = rand();
+        Rcpp::Rcout << x %50 << endl;
+    }
 }

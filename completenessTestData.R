@@ -1,32 +1,17 @@
-completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0){
-    ID = names(data)
-    name = catalogue$GI.Vec
-    connec = catalogue$comb
+completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal"){
+    
+    cat = subset(cat,GI.Vec %in% names(data))
     
     tmp1 = list()
-    for(i in 1:length(ID)){
-        tmp = c()
-        n = which(name == ID[i])
-        tmp[length(tmp)+1] = ID[i]
-        flag = TRUE
-        while(flag){
-            n = which(ID == name[connec[n]])
-            if(length(n) > 0 && n != 0){
-                if(name[n] != tmp[length(tmp)]){
-                    tmp[length(tmp)+1] = name[n]
-                    print(tmp[length(tmp)])
-                }
-                else{
-                    flag = FALSE
-                }
-            }
-            else{
-                flag = FALSE
-            }
+    isUsed = c()
+    for(i in 1:length(cat$comb)){
+        if(!(cat$comb[i] %in% isUsed)){
+            tmp1[[length(tmp1)+1]] = cat$GI.Vec[which(cat$comb == cat$comb[i])]
+            isUsed[length(isUsed)+1] = cat$comb[i]
+            
         }
-        tmp1[[length(tmp1)+1]] = tmp
     }
-
+    print(tmp1)
     lengths = list()
     lengthSums = c()
     for(i in 1:length(tmp1)){
@@ -45,16 +30,18 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
         tmp3 = list()
         tmp4 = list()
         for(j in 1:length(data[[i]]$GENOME)){
-            tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@lengths
-            tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@values
-            tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@lengths
-            tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@values
+            if((!is.null(data[[i]]$GENOME[[j]])) && (!is.null(data[[i]]$ORF[[j]]))){
+                tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@lengths
+                tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@values
+                tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@lengths
+                tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@values
+            }
         }
         pifams[[length(pifams)+1]] = tmp3
         Orfs[[length(Orfs)+1]] = tmp4
     }
-    conts = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,seed)
-    res = countPifams(pifams,Orfs,conts,as.integer(ID))
+    conts = mkContigs(lengths =  lengths,lengthSums =  lengthSums,minContigLength =  minContigLength,meanContigLength =  meanContigLength,number =  number,seed =  seed,distr =  distr)
+    res = countPifams(pifams,Orfs,conts,as.integer(names(data)))
     return(res)
 }
 
