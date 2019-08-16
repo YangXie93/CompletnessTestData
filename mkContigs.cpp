@@ -149,24 +149,33 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
     
     for(int i = 0; i < number; i++){
         Rcpp::Rcout << "At: " << i << endl;
-        int which = generator() % lengths.size();
-        vector<int>::iterator totLen = next(lengthSums.begin(),which);
+        vector<int> bigEnough;
+        double partCovered = (60+ (rand() % 40))/100.0;
+        Rcpp::Rcout << "completeness: " << partCovered << endl;
+        for(int n = 0;n < (int) lengthSums.size();n++){
+            if((lengthSums[n] *partCovered) > minContigLength){
+                bigEnough.push_back(n);
+            }
+        }
+        int which = generator() % bigEnough.size();
+        vector<int>::iterator totLen = next(lengthSums.begin(),bigEnough[which]);
         list<list<vector<int> > > tmp;
         vector<int> baseNrs;
         vector<int> indicies;
 
-        double partCovered = (60+ (rand() % 40))/100.0;
-        Rcpp::Rcout << "completeness: " << partCovered << endl;
         if((*totLen)* partCovered < minContigLength){
             if((*totLen) < minContigLength){
                 baseNrs.push_back((*totLen));
+                Rcpp::Rcout << "too small" << endl;
             }
             else{
                 baseNrs.push_back(minContigLength);
+                Rcpp::Rcout << "min length" << endl;
             }
         }
         else{
             baseNrs.push_back((int) ((*totLen) *partCovered));
+            Rcpp::Rcout << "good length" << endl;
         }
         double compPart = (60+ (rand() % 40))/100.0;
         Rcpp::Rcout << "contamination: " << 1- compPart << endl;
@@ -177,7 +186,7 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         else{
             baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
         }
-        vector<int> bigEnough;
+        bigEnough.clear();
         for(int n = 0;n < (int) lengthSums.size();n++){
             if(n != which && lengthSums[n] > (*prev(baseNrs.end()))){
                 bigEnough.push_back(n);

@@ -1,6 +1,6 @@
 completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal"){
     
-    cat = subset(cat,GI.Vec %in% names(data))
+    cat = subset(catalogue,GI.Vec %in% names(data))
     
     tmp1 = list()
     isUsed = c()
@@ -45,6 +45,9 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
     return(res)
 }
 
+
+
+
 timeCompletenessTestData <- function(times,data,catalogue,minContigLength,meanContigLength,seed = 0){
     time = Sys.time()
 
@@ -52,6 +55,8 @@ timeCompletenessTestData <- function(times,data,catalogue,minContigLength,meanCo
 
     print(Sys.time() - time)
 }
+
+
 
 meanTimeCompletenessTestData <- function(meanTime,times,data,catalogue,minContigLength,meanContigLength,seed = 0){
     mn = c()
