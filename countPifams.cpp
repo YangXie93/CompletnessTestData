@@ -78,7 +78,9 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                     if(cons == (*con).begin()){
                         partial += t;
                     }
-                    contTotal += t;
+                    else{
+                        contTotal += t;
+                    }
                     list<vector<int> >::iterator orfs = (*next(ORFs.begin(),transfer)).begin();
                     
                     for(list<vector<int> >::iterator pis = (*next(pifams.begin(),transfer)).begin();pis != (*next(pifams.begin(),transfer)).end();pis = next(pis,2)){
@@ -154,32 +156,27 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                     //ende alle 6 GENOME und ORF Werte
                     
                 }
-                if(cons == (*con).begin()){
-                    tmp.push_back(Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum));
-                    name.clear();
-                    id.clear();
-                    baseNum.clear();
-                    times.clear();
-                    notInOrf.clear();
-                }
-                else{
-                    tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum));
-                    name.clear();
-                    id.clear();
-                    baseNum.clear();
-                    times.clear();
-                    notInOrf.clear();
-                }
+                
             }
             //ende alle Chromosomen
 
             if(cons == (*con).begin()){
                 vector<double> completeness = {(double)partial/(double) total};
-                tmp.push_back(Rcpp::List::create(Rcpp::Named("completness") = completeness));
+                tmp.push_back(Rcpp::List::create(Rcpp::Named("compChromID") = name,Rcpp::Named("compPifamNames") = id,Rcpp::Named("compPifamCount") = times,Rcpp::Named("compBaseCount") = baseNum,Rcpp::Named("completness") = completeness));
+                name.clear();
+                id.clear();
+                baseNum.clear();
+                times.clear();
+                notInOrf.clear();
             }
             else{
-                vector<double> contamination = {1 -((double)partial/(double)contTotal)};
-                tmp.push_back(Rcpp::List::create(Rcpp::Named("contamination") = contamination));
+                vector<double> contamination = {((double)contTotal/(double)total)};
+                tmp.push_back(Rcpp::List::create(Rcpp::Named("contChromID") = name,Rcpp::Named("contPifamNames") = id,Rcpp::Named("contPifamCount") = times,Rcpp::Named("contBaseCount") = baseNum,Rcpp::Named("contamination") = contamination));
+                name.clear();
+                id.clear();
+                baseNum.clear();
+                times.clear();
+                notInOrf.clear();
             }
         
         }

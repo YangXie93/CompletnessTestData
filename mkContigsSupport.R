@@ -107,5 +107,8 @@ for(j in 1:length(data[[1]]$GENOME)){
 }
 
 
+zero = readRDS("~/Daten/IDz_Zero_Zero.Rds")
+
+x = completenessTestData(zero,cat,10000,20000,1000)
 
 

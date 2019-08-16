@@ -115,19 +115,24 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int>& le
     int share;
     int tmp;
     for(vector<int>::iterator it = next(lengths.begin());distance(it,lengths.end()) > 0;it = next(it,2)){
-        if((*it) >= minContigLength){
+        if(needed > 0){    
             share = round(needed *((*it)/(double)totalLength));
             poisson_distribution<int> distribution(share);
             tmp = distribution(generator) %(*it);
             distribution.reset();
-            needed -= tmp;
-            totalLength -= (*it);
-            res.push_back(tmp);
+            if(tmp >= minContigLength){
+                needed -= tmp;
+                totalLength -= (*it);
+                res.push_back(tmp);
+            }
+            else{
+                needed -= minContigLength;
+                res.push_back(minContigLength);
+                if(needed < 0){
+                    needed = 0;
+                }
+            }
         }
-        else{
-            res.push_back(0);
-        }
-
     }
     Rcpp::Rcout << "FWHM: needed: " << needed << " Nr.: " << res[0] << endl;
     
@@ -153,7 +158,7 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         double partCovered = (60+ (rand() % 40))/100.0;
         Rcpp::Rcout << "completeness: " << partCovered << endl;
         for(int n = 0;n < (int) lengthSums.size();n++){
-            if((lengthSums[n] *partCovered) > minContigLength){
+            if((lengthSums[n] *partCovered) >= minContigLength){
                 bigEnough.push_back(n);
             }
         }
@@ -179,16 +184,16 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         }
         double compPart = (60+ (rand() % 40))/100.0;
         Rcpp::Rcout << "contamination: " << 1- compPart << endl;
-        if((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))) <= minContigLength){
+        if((*totLen) *compPart <= minContigLength){
             Rcpp::Rcout << "entschuldigt!" << endl;
             baseNrs.push_back(minContigLength);
         }
         else{
-            baseNrs.push_back((*prev(baseNrs.end()) / (compPart * 100.0)*100 -(*prev(baseNrs.end()))));
+            baseNrs.push_back((*totLen) *compPart);
         }
         bigEnough.clear();
         for(int n = 0;n < (int) lengthSums.size();n++){
-            if(n != which && lengthSums[n] > (*prev(baseNrs.end()))){
+            if(n != which && lengthSums[n] >= (*prev(baseNrs.end()))){
                 bigEnough.push_back(n);
             }
         }
