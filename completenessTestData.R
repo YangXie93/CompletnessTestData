@@ -39,7 +39,7 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
         pifams[[length(pifams)+1]] = tmp3
         Orfs[[length(Orfs)+1]] = tmp4
     }
-    res = compTestData(pifams,Orfs,as.integer(names(data)),lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
+    res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
     print(Sys.time() -x)
     return(res)
 }

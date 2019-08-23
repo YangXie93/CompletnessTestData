@@ -168,7 +168,7 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int> len
 //[[Rcpp::plugins(cpp11)]]
 //[[Rcpp::export]]
 
-vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,vector<double> comp,vector<double> cont,int seed = 0,string distr = "normal"){
+vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,vector<int>& pseuPoint,vector<double> comp,vector<double> cont,int seed = 0,string distr = "normal"){
 
     default_random_engine generator;
     generator.seed(seed);
@@ -191,25 +191,30 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
     
     int at = 0;
     double partCovered;
-    int which;
+    vector<int>::iterator which;
     bool swtch;
     int index;
     int l;
     int n;
     int j;
     int m;
+    int count;
 
     for(int i = 0; i < number; i++){
         partCovered = ((comp[0] *100) + (rand() % (int)((comp[1]-comp[0]) *100)))/100.0;
-        for(int n = 0;n < (int) lengthSums.size();n++){
-            if((lengthSums[n] *partCovered) >= minContigLength){
-                bigEnough.push_back(n);
+        which = next(lengthSums.begin(),(generator() % lengthSums.size()));
+        
+        count = 0;
+        while(((*which)* partCovered) < minContigLength && count < lengthSums.size()){
+            which++;
+            count++;
+            if(which == lengthSums.end()){
+                which = lengthSums.begin();
             }
         }
-        which = generator() % bigEnough.size();
-        totLen = next(lengthSums.begin(),bigEnough[which]);
-        list<list<vector<int> > > tmp;
-
+        
+        
+        totLen = which;
 
 
         baseNrs.push_back((int) ((*totLen) *partCovered));
@@ -220,18 +225,29 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
         else{
             baseNrs.push_back((*totLen) *contPart);
         }
-        bigEnough.clear();
-        for(int n = 0;n < (int) lengthSums.size();n++){
-            if(n != which && lengthSums[n] >= (*prev(baseNrs.end()))){
-                bigEnough.push_back(n);
+        
+        count = 0;
+        which = next(lengthSums.begin(),(generator() % lengthSums.size()));
+        while((*which) < *prev(baseNrs.end()) && count < lengthSums.size()){
+            which++;
+            count++;
+            if(which == lengthSums.end()){
+                which = lengthSums.begin();
+            }
+            if(which == totLen){
+                which++;
             }
         }
+        
+        
         if((int) bigEnough.size() != 0){
             res.push_back(vector<int> (0));
             index = bigEnough[(rand() % bigEnough.size()) -1];
             bigEnough.clear();
             indicies.push_back(distance(lengthSums.begin(),totLen));
             indicies.push_back(index);
+            pseuPoint.push_back(distance(lengthSums.begin(),totLen));
+            pseuPoint.push_back(index);
             for(n = 0; n < (int) baseNrs.size();n++){
 
                 res.push_back(vector<int> (0));
@@ -317,7 +333,7 @@ vector<int> intervallOverlap(int start1, int end1,int start2,int end2){
 
 //[[Rcpp::export]]
 
-Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> > >& ORFs,vector<vector<int> >& contigs,vector<int>& names){
+Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> > >& ORFs,vector<vector<int> > contigs,vector<int>& names){
 
     Rcpp::List res;
     vector<int> id;
@@ -349,7 +365,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
     vector<int>::iterator orfValues;
     vector<int>::iterator orfWidths;
 
-
+    vector<int>::iterator nms = names.begin();
     list<vector<int> >::iterator orfs;
     list<vector<int> >::iterator pis;
 
@@ -372,107 +388,105 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
                 // alle Chromosomen
 
                 name.push_back(*((*con).begin()));
-                trans = find(names.begin(),names.end(),*((*con).begin()));
-                if(trans != names.end()){
-                    transfer = distance(names.begin(),trans);
-                    orfs = (*next(ORFs.begin(),transfer)).begin();
-                    for(pis = (*next(pifams.begin(),transfer)).begin();pis != (*next(pifams.begin(),transfer)).end();pis = next(pis,2)){
-                        // für alle 6 GENOME und ORF Werte
+                transfer = (*nms);
+                orfs = (*next(ORFs.begin(),transfer)).begin();
+                for(pis = (*next(pifams.begin(),transfer)).begin();pis != (*next(pifams.begin(),transfer)).end();pis = next(pis,2)){
+                    // für alle 6 GENOME und ORF Werte
 
-                        starts = (*next(con)).begin();
-                        ends = (*next(con,2)).begin();
-                        width = (*pis).begin();
-                        values = (*next(pis)).begin();
-                        orfWidths = (*orfs).begin();
-                        orfValues = (*next(orfs)).begin();
+                    starts = (*next(con)).begin();
+                    ends = (*next(con,2)).begin();
+                    width = (*pis).begin();
+                    values = (*next(pis)).begin();
+                    orfWidths = (*orfs).begin();
+                    orfValues = (*next(orfs)).begin();
 
-                        for(starts = (*next(con)).begin();starts != (*next(con)).end();starts++){
-                            //für alle Length Werte in ORF
-                            x += (*ends) - (*starts) +1;
-                            while((*starts) > (o +(*orfWidths))){
-                                o += (*orfWidths);
-                                orfWidths++;
-                                orfValues++;
-                            }
-                            while(o > (*starts) || (o + (*orfWidths)) < (*ends)){
-                                if((*orfValues) > 0){
-                                    fill(notInOrf.begin(),notInOrf.end(),true);
-                                    while(o > n+(*width)){
+                    for(starts = (*next(con)).begin();starts != (*next(con)).end();starts++){
+                        //für alle Length Werte in ORF
+                        x += (*ends) - (*starts) +1;
+                        while((*starts) > (o +(*orfWidths))){
+                            o += (*orfWidths);
+                            orfWidths++;
+                            orfValues++;
+                        }
+                        while(o > (*starts) || (o + (*orfWidths)) < (*ends)){
+                            if((*orfValues) > 0){
+                                fill(notInOrf.begin(),notInOrf.end(),true);
+                                while(o > n+(*width)){
+                                    n += (*width);
+                                    width++;
+                                    values++;
+                                }
+                                while(n > (*starts) || (n + (*width)) < (*ends)){
+                                    if((*values) > 0){
+                                        tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));
+                                        if((int) tmp1.size() > 1){
+                                            t = find(id.begin(),id.end(),(*values));
+                                            if(t == id.end()){
+                                                baseNum.push_back(tmp1[1] - tmp1[0] +1);
+                                                times.push_back(1);
+                                                id.push_back((*values));
+                                                notInOrf.push_back(false);
+                                            }
+                                            else{
+                                                bN = next(baseNum.begin(),t-id.begin());
+                                                nio = next(notInOrf.begin(),t-id.begin());
+                                                if((*nio)){
+                                                    tms = next(times.begin(),t-id.begin());
+                                                    (*tms)++;
+                                                    (*nio) = false;
+                                                }
+                                                (*bN) += tmp1[1] - tmp1[0] +1;
+                                            }
+                                        }
+                                    }
+                                    if((n + (*width)) < (*ends)){
                                         n += (*width);
                                         width++;
                                         values++;
                                     }
-                                    while(n > (*starts) || (n + (*width)) < (*ends)){
-                                        if((*values) > 0){
-                                            tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));
-                                            if((int) tmp1.size() > 1){
-                                                t = find(id.begin(),id.end(),(*values));
-                                                if(t == id.end()){
-                                                    baseNum.push_back(tmp1[1] - tmp1[0] +1);
-                                                    times.push_back(1);
-                                                    id.push_back((*values));
-                                                    notInOrf.push_back(false);
-                                                }
-                                                else{
-                                                    bN = next(baseNum.begin(),t-id.begin());
-                                                    nio = next(notInOrf.begin(),t-id.begin());
-                                                    if((*nio)){
-                                                        tms = next(times.begin(),t-id.begin());
-                                                        (*tms)++;
-                                                        (*nio) = false;
-                                                    }
-                                                    (*bN) += tmp1[1] - tmp1[0] +1;
-                                                }
-                                            }
-                                        }
-                                        if((n + (*width)) < (*ends)){
-                                            n += (*width);
-                                            width++;
-                                            values++;
-                                        }
-                                        else{
-                                            break;
-                                        }
+                                    else{
+                                        break;
                                     }
                                 }
-                                if((o + (*orfWidths)) < (*ends)){
-                                    o += (*orfWidths);
-                                    orfWidths++;
-                                    orfValues++;
-                                }
-                                else{
-                                    break;
-                                }
                             }
-
-                            ends++;
-                        }
-                        //end alle Length Werte aus ORF
-                        if(pis == (*next(pifams.begin(),transfer)).begin()){
-                            total += o;
-                            while(orfWidths != (*orfs).end()){
-                                total += (*orfWidths);
+                            if((o + (*orfWidths)) < (*ends)){
+                                o += (*orfWidths);
                                 orfWidths++;
+                                orfValues++;
+                            }
+                            else{
+                                break;
                             }
                         }
-                        if(x > zwsch){
-                            zwsch = x;
+
+                        ends++;
+                    }
+                    //end alle Length Werte aus ORF
+                    if(pis == (*next(pifams.begin(),transfer)).begin()){
+                        total += o;
+                        while(orfWidths != (*orfs).end()){
+                            total += (*orfWidths);
+                            orfWidths++;
                         }
-                        o = 0;
-                        n = 0;
-                        x = 0;
-                        orfs = next(orfs,2);
                     }
-                    //ende alle 6 GENOME und ORF Werte
-                    if(GenNr == 1){
-                        partial += zwsch;
+                    if(x > zwsch){
+                        zwsch = x;
                     }
-                    else{
-                        contTotal += zwsch;
-                    }
-                    zwsch = 0;
+                    o = 0;
+                    n = 0;
+                    x = 0;
+                    orfs = next(orfs,2);
                 }
+                //ende alle 6 GENOME und ORF Werte
+                if(GenNr == 1){
+                    partial += zwsch;
+                }
+                else{
+                    contTotal += zwsch;
+                }
+                zwsch = 0;
                 con = next(con,3);
+                nms++;
             }
             //ende alle Chromosomen
             if(GenNr == 1){
@@ -511,8 +525,8 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
 
 //[[Rcpp::export]]
 
-Rcpp::List compTestData(list<list<vector<int> > >& pifams,list<list<vector<int> > >& ORFs,vector<int>& names,list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,vector<double> comp,vector<double> cont,int seed = 0,string distr = "normal"){
-    vector<vector<int> > conts = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr);
-    Rcpp::List res = countPifams(pifams,ORFs,conts,names);
-    return res;
+Rcpp::List compTestData(list<list<vector<int> > >& pifams,list<list<vector<int> > >& ORFs,list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,vector<double> comp,vector<double> cont,int seed = 0,string distr = "normal"){
+    vector<int>names;
+
+    return countPifams(pifams,ORFs,mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,names,comp,cont,seed,distr),names);
 }
