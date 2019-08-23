@@ -111,4 +111,37 @@ zero = readRDS("~/Daten/IDz_Zero_Zero.Rds")
 
 x = completenessTestData(zero,cat,10000,20000,1000)
 
+library(data.table)
+cat = data.table(GI.Vec = names(con),comb = c(1:length(con)))
+
+
+
+#------------------------------------------------------
+
+l = c(1,20,2,10,3,15,4,12)
+t = 47
+
+
+testForToHighCont <- function(x){
+    for(i in 1:length(x)){
+        if(x[[i]][[2]]$contamination > 0.4){
+            print(paste("cont at:",i))
+            print(x[[i]][[2]]$contamination)
+        }
+        if(x[[i]][[1]]$completeness < 0.6){
+            print(paste("comp at: ",i))
+            print(x[[i]][[1]]$completeness)
+        }
+    }
+    
+}
+
+
+
+
+
+
+763166122
+13401
+
 

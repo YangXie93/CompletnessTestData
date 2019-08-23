@@ -1,5 +1,5 @@
-completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal"){
-    
+completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal",comp = c(0.6,1.0),cont = c(0.0,0.4)){
+    x = Sys.time()
     cat = subset(catalogue,GI.Vec %in% names(data))
     
     tmp1 = list()
@@ -11,7 +11,6 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
             
         }
     }
-    print(tmp1)
     lengths = list()
     lengthSums = c()
     for(i in 1:length(tmp1)){
@@ -40,8 +39,8 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
         pifams[[length(pifams)+1]] = tmp3
         Orfs[[length(Orfs)+1]] = tmp4
     }
-    conts = mkContigs(lengths =  lengths,lengthSums =  lengthSums,minContigLength =  minContigLength,meanContigLength =  meanContigLength,number =  number,seed =  seed,distr =  distr)
-    res = countPifams(pifams,Orfs,conts,as.integer(names(data)))
+    res = compTestData(pifams,Orfs,as.integer(names(data)),lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
+    print(Sys.time() -x)
     return(res)
 }
 

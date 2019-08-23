@@ -62,7 +62,6 @@ vector<int> randomContigs(int minContigLength,int meanContigLength,int covering,
             }
         }
     }
-    Rcpp::Rcout << "RandCont: how many: " << res.size() << endl;
     return res;
 }
 
@@ -108,34 +107,49 @@ vector<int> randomSpaces(int numSp,int free){
 
 //[[Rcpp::export]]
 
-vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int>& lengths,int needed){
+vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int> lengths,int needed){
     default_random_engine generator;
     vector<int> res;
-    res.reserve(lengths.size());
+    res.reserve(lengths.size()/2);
     int share;
     int tmp;
-    for(vector<int>::iterator it = next(lengths.begin());distance(it,lengths.end()) > 0;it = next(it,2)){
-        if(needed > 0){    
+    vector<int> tmp1;
+    vector<int> accession;
+    tmp1.reserve(lengths.size()/2);
+    accession.reserve(lengths.size()/2);
+    int j = 0;
+    for(int i = 1;i < (int) lengths.size();i+= 2){
+        res.push_back(0);
+        tmp1.push_back(lengths[i]);
+        accession.push_back(j);
+        j++;
+    }
+    for(int i = 0; i < (int) res.size();i++){
+        if(needed > 0){
+            int x = (rand() % (tmp1.size()));
+            vector<int>::iterator it = next(tmp1.begin(),x);
+            vector<int>::iterator acc = next(accession.begin(),x);
             share = round(needed *((*it)/(double)totalLength));
             poisson_distribution<int> distribution(share);
-            tmp = distribution(generator) %(*it);
-            distribution.reset();
+            tmp = distribution(generator);
+            if(tmp > (*it)){
+                tmp -= tmp %(*it); 
+            }
             if(tmp >= minContigLength){
                 needed -= tmp;
                 totalLength -= (*it);
-                res.push_back(tmp);
+                res[(*acc)] = tmp;
             }
             else{
                 needed -= minContigLength;
-                res.push_back(minContigLength);
-                if(needed < 0){
-                    needed = 0;
-                }
+                totalLength -= (*it);
+                res[(*acc)] = minContigLength;
             }
+            tmp1.erase(it);
+            accession.erase(acc);
         }
     }
-    Rcpp::Rcout << "FWHM: needed: " << needed << " Nr.: " << res[0] << endl;
-    
+
     return res;
 }
 
@@ -153,10 +167,8 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
 
     
     for(int i = 0; i < number; i++){
-        Rcpp::Rcout << "At: " << i << endl;
         vector<int> bigEnough;
         double partCovered = (60+ (rand() % 40))/100.0;
-        Rcpp::Rcout << "completeness: " << partCovered << endl;
         for(int n = 0;n < (int) lengthSums.size();n++){
             if((lengthSums[n] *partCovered) >= minContigLength){
                 bigEnough.push_back(n);
@@ -168,28 +180,14 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
         vector<int> baseNrs;
         vector<int> indicies;
 
-        if((*totLen)* partCovered < minContigLength){
-            if((*totLen) < minContigLength){
-                baseNrs.push_back((*totLen));
-                Rcpp::Rcout << "too small" << endl;
-            }
-            else{
-                baseNrs.push_back(minContigLength);
-                Rcpp::Rcout << "min length" << endl;
-            }
-        }
-        else{
-            baseNrs.push_back((int) ((*totLen) *partCovered));
-            Rcpp::Rcout << "good length" << endl;
-        }
-        double compPart = (60+ (rand() % 40))/100.0;
-        Rcpp::Rcout << "contamination: " << 1- compPart << endl;
-        if((*totLen) *compPart <= minContigLength){
-            Rcpp::Rcout << "entschuldigt!" << endl;
+
+        baseNrs.push_back((int) ((*totLen) *partCovered));
+        double contPart = ((rand() % 40))/100.0;
+        if((*totLen) *contPart <= minContigLength){
             baseNrs.push_back(minContigLength);
         }
         else{
-            baseNrs.push_back((*totLen) *compPart);
+            baseNrs.push_back((*totLen) *contPart);
         }
         bigEnough.clear();
         for(int n = 0;n < (int) lengthSums.size();n++){
@@ -197,68 +195,59 @@ list<list<list<vector<int> > > > mkContigs(list<vector<int> >& lengths,vector<in
                 bigEnough.push_back(n);
             }
         }
-
-        int index = bigEnough[rand() % (bigEnough.size() -1)];
-        indicies.push_back(which);
-        indicies.push_back(index);
-        Rcpp::Rcout<< "index1: "  << which << " index2: " << index << endl;
-        vector<int> chromBaseNrs;
-        for(int n = 0; n < (int) baseNrs.size();n++){
-
-            list<vector<int> > tmp2;
-            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
-            int l = 0;
-            for(int j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
-                vector<int> contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed);
-                vector<int> spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -chromBaseNrs[l]);
-                vector<int>::iterator co = contigs.begin();
-                vector<int>::iterator sp = spaces.begin();
-                vector<int> starts;
-                starts.reserve(contigs.size());
-                vector<int> ends;
-                ends.reserve(contigs.size());
-                bool swtch = true;
-                for(int n = 0;n < (int)contigs.size();n++){
-                    at += (*sp);
-                    if(swtch){
-                        starts.push_back(at+1);
+        if((int) bigEnough.size() != 0){
+            int index = bigEnough[(rand() % bigEnough.size()) -1];
+            indicies.push_back(distance(lengthSums.begin(),totLen));
+            indicies.push_back(index);
+            vector<int> chromBaseNrs;
+            for(int n = 0; n < (int) baseNrs.size();n++){
+    
+                list<vector<int> > tmp2;
+                chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
+                int l = 0;
+                for(int j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
+                    vector<int> contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed);
+                    vector<int> spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -chromBaseNrs[l]);
+                    vector<int>::iterator co = contigs.begin();
+                    vector<int>::iterator sp = spaces.begin();
+                    vector<int> starts;
+                    starts.reserve(contigs.size());
+                    vector<int> ends;
+                    ends.reserve(contigs.size());
+                    bool swtch = true;
+                    for(int n = 0;n < (int)contigs.size();n++){
+                        at += (*sp);
+                        if(swtch){
+                            starts.push_back(at+1);
+                        }
+                        at += (*co);
+                        sp++;
+                        co++;
+                        if((*sp) > 0){
+                            ends.push_back(at);
+                        }
+                        else{
+                          swtch = false;
+                        }
                     }
-                    at += (*co);
-                    sp++;
-                    co++;
-                    if((*sp) > 0){
+                    if(ends.size() == 0){
                         ends.push_back(at);
                     }
-                    else{
-                      swtch = false;
-                    }
+    
+                    at = 0;
+                    tmp2.push_back(vector<int> {(*next(lengths.begin(),indicies[n]))[j-1]});
+                    tmp2.push_back(starts);
+                    tmp2.push_back(ends);
+                    l++;
                 }
-                if(ends.size() == 0){
-                    ends.push_back(at);
-                }
-
-                at = 0;
-                tmp2.push_back(vector<int> {(*next(lengths.begin(),indicies[n]))[j-1]});
-                tmp2.push_back(starts);
-                tmp2.push_back(ends);
-                l++;
+                tmp.push_back(tmp2);
             }
-            tmp.push_back(tmp2);
+            res.push_back(tmp);
         }
-        Rcpp::Rcout << endl;
-        res.push_back(tmp);
+        else{
+            i--;
+         }
     }
     return res;
 }
 
-
-//[[Rcpp::export]]
-
-
-void testRand(int times,int seed){
-    srand(seed);
-    for(int i = 0;i < times;i++){
-        int x = rand();
-        Rcpp::Rcout << x %50 << endl;
-    }
-}
