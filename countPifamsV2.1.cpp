@@ -61,9 +61,7 @@ vector<int> randomContigs(int minContigLength,int meanContigLength,int covering,
             normDist.reset();
         }
         if(tmp >= covering){
-            res.push_back(covering);
             covering = 0;
-            mean += covering;
         }
         else{
             if(tmp > 0){
@@ -177,7 +175,6 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
     vector<vector<int> > res;
     res.reserve(number);
 
-    vector<int> bigEnough;
     vector<int>::iterator totLen;
     vector<int> baseNrs;
     vector<int> indicies;
@@ -199,7 +196,12 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
     int j;
     int m;
     int count;
-
+    
+    if(cont[1] > comp[0]){
+        cont[1] = comp[0];
+    }
+    
+    
     for(int i = 0; i < number; i++){
         partCovered = ((comp[0] *100) + (rand() % (int)((comp[1]-comp[0]) *100)))/100.0;
         which = next(lengthSums.begin(),(generator() % lengthSums.size()));
@@ -212,10 +214,12 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
                 which = lengthSums.begin();
             }
         }
-        
+        if(count == lengthSums.size() && (*which) < minContigLength){
+            Rcpp::Rcerr << "Die mindest Länge ist zu groß für den Datensatz" << endl;
+            return res;
+        }
         
         totLen = which;
-
 
         baseNrs.push_back((int) ((*totLen) *partCovered));
         double contPart = ((cont[0] *100) + (rand() % (int)(cont[1] *100)))/100.0;
@@ -238,63 +242,59 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
                 which++;
             }
         }
-        
-        
-        if((int) bigEnough.size() != 0){
+        if((*which) < *prev(baseNrs.end()) && count == lengthSums.size()){
+            Rcpp::Rcerr << "Die geforderte Completeness ist zu hoch für den Datensatz" << endl;
+            return res;
+        }
+        res.push_back(vector<int> (0));
+        index = distance(lengthSums.begin(),totLen);
+        indicies.push_back(distance(lengthSums.begin(),totLen));
+        indicies.push_back(index);
+        pseuPoint.push_back(distance(lengthSums.begin(),totLen));
+        pseuPoint.push_back(index);
+        for(n = 0; n < (int) baseNrs.size();n++){
+
             res.push_back(vector<int> (0));
-            index = bigEnough[(rand() % bigEnough.size()) -1];
-            bigEnough.clear();
-            indicies.push_back(distance(lengthSums.begin(),totLen));
-            indicies.push_back(index);
-            pseuPoint.push_back(distance(lengthSums.begin(),totLen));
-            pseuPoint.push_back(index);
-            for(n = 0; n < (int) baseNrs.size();n++){
+            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
+            l = 0;
+            for(j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
+                contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed);
+                spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -chromBaseNrs[l]);
+                co = contigs.begin();
+                sp = spaces.begin();
 
-                res.push_back(vector<int> (0));
-                chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
-                l = 0;
-                for(j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
-                    contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed);
-                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -chromBaseNrs[l]);
-                    co = contigs.begin();
-                    sp = spaces.begin();
+                starts.reserve(contigs.size());
 
-                    starts.reserve(contigs.size());
-
-                    ends.reserve(contigs.size());
-                    swtch = true;
-                    for(int m = 0;m < (int)contigs.size();m++){
-                        at += (*sp);
-                        if(swtch){
-                            starts.push_back(at+1);
-                        }
-                        at += (*co);
-                        sp++;
-                        co++;
-                        if((*sp) > 0){
-                            ends.push_back(at);
-                        }
-                        else{
-                          swtch = false;
-                        }
+                ends.reserve(contigs.size());
+                swtch = true;
+                for(int m = 0;m < (int)contigs.size();m++){
+                    at += (*sp);
+                    if(swtch){
+                        starts.push_back(at+1);
                     }
-                    if(ends.size() == 0){
+                    at += (*co);
+                    sp++;
+                    co++;
+                    if((*sp) > 0){
                         ends.push_back(at);
                     }
-
-                    at = 0;
-                    res.push_back(vector<int> {(*next(lengths.begin(),indicies[n]))[j-1]});
-                    res.push_back(starts);
-                    res.push_back(ends);
-                    starts.clear();
-                    ends.clear();
-                    l++;
+                    else{
+                      swtch = false;
+                    }
                 }
+                if(ends.size() == 0){
+                    ends.push_back(at);
+                }
+
+                at = 0;
+                res.push_back(vector<int> {(*next(lengths.begin(),indicies[n]))[j-1]});
+                res.push_back(starts);
+                res.push_back(ends);
+                starts.clear();
+                ends.clear();
+                l++;
             }
         }
-        else{
-            i--;
-         }
         baseNrs.clear();
         indicies.clear();
     }
