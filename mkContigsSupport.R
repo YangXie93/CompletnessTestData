@@ -3,7 +3,7 @@ con = readRDS("~/Downloads/IDz_1_0.Rds")
 timeMkContigs <- function(times,y,z){
     t = Sys.time()
     for(i in 1:times){
-        x = mkContigs(lengths = y,lengthSums = z,minContigLength = 1000,meanContigLength = 2000)
+        x = mkContigs(lengths = y,lengthSums = z,minContigLength = 10000,meanContigLength = 20000)
     }
     print(Sys.time() -t)
 }

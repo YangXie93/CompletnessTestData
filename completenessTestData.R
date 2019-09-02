@@ -1,6 +1,8 @@
 completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal",comp = c(0.6,1.0),cont = c(0.0,0.4)){
     x = Sys.time()
     cat = subset(catalogue,GI.Vec %in% names(data))
+    nms = names(data) %in% cat$GI.Vec
+    
     
     tmp1 = list()
     isUsed = c()
@@ -26,20 +28,24 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
     pifams = list()
     Orfs = list()
     for(i in 1:length(data)){
-        tmp3 = list()
-        tmp4 = list()
-        for(j in 1:length(data[[i]]$GENOME)){
-            if((!is.null(data[[i]]$GENOME[[j]])) && (!is.null(data[[i]]$ORF[[j]]))){
-                tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@lengths
-                tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@values
-                tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@lengths
-                tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@values
+        if(nms[i]){
+            tmp3 = list()
+            tmp4 = list()
+            for(j in 1:length(data[[i]]$GENOME)){
+                if((!is.null(data[[i]]$GENOME[[j]])) && (!is.null(data[[i]]$ORF[[j]]))){
+                    tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@lengths
+                    tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@values
+                    tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@lengths
+                    tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@values
+                }
             }
+            pifams[[length(pifams)+1]] = tmp3
+            Orfs[[length(Orfs)+1]] = tmp4
         }
-        pifams[[length(pifams)+1]] = tmp3
-        Orfs[[length(Orfs)+1]] = tmp4
     }
-    res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
+    print(length(pifams))
+    print(length(names(data)[nms]))
+    res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,as.integer(names(data)[nms]),seed,distr)
     print(Sys.time() -x)
     return(res)
 }
