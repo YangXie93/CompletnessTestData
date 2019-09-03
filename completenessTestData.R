@@ -19,7 +19,12 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
         tmp2 = c()
         lengthSums[i] = 0
         for(j in 1:length(tmp1[[i]])){
-            tmp2[length(tmp2)+1] = as.integer(tmp1[[i]][j])
+            tmp2[length(tmp2)+1] = as.numeric(tmp1[[i]][j])
+            for(n in 1:length(tmp2[length(tmp2)])){
+                if(!(as.character(tmp2[length(tmp2)][n]) %in% names(data)[nms])){
+                    print("in R")
+                }
+            }
             tmp2[length(tmp2)+1] = sum(data[[tmp1[[i]][j]]]$GENOME[[1]]@lengths)
             lengthSums[i] = lengthSums[i] + tmp2[length(tmp2)]
         }
@@ -43,8 +48,11 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
             Orfs[[length(Orfs)+1]] = tmp4
         }
     }
+    print(names(data)[nms])
     print(length(pifams))
-    print(length(names(data)[nms]))
+    print(length(Orfs))
+    print(lengths)
+    print(lengthSums)
     res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,as.integer(names(data)[nms]),seed,distr)
     print(Sys.time() -x)
     return(res)

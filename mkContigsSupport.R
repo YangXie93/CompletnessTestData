@@ -124,24 +124,97 @@ t = 47
 
 testForToHighCont <- function(x){
     for(i in 1:length(x)){
-        if(x[[i]][[2]]$contamination > 0.4){
+        if(x[[i]][[2]]$contamination > x[[i]][[1]]$completness){
             print(paste("cont at:",i))
-            print(x[[i]][[2]]$contamination)
-        }
-        if(x[[i]][[1]]$completeness < 0.6){
-            print(paste("comp at: ",i))
-            print(x[[i]][[1]]$completeness)
+            print(paste("cont: " ,x[[i]][[2]]$contamination, "comp " ,x[[i]][[1]]$completness))
         }
     }
     
 }
 
+sum(x[[2]][[1]]$compBaseCount)
+sum(c(zero$`1128881303`$GENOME[[1]]@lengths[zero$`1128881303`$GENOME[[1]]@values >= 0],zero$`1128881303`$GENOME[[2]]@lengths[zero$`1128881303`$GENOME[[2]]@values >= 0],zero$`1128881303`$GENOME[[3]]@lengths[zero$`1128881303`$GENOME[[3]]@values >= 0],zero$`1128881303`$GENOME[[4]]@lengths[zero$`1128881303`$GENOME[[4]]@values >= 0],zero$`1128881303`$GENOME[[5]]@lengths[zero$`1128881303`$GENOME[[5]]@values >= 0],zero$`1128881303`$GENOME[[6]]@lengths[zero$`1128881303`$GENOME[[6]]@values >= 0]))
+
+testBaseCountcomp<- function(x,zero){
+    res = c()
+    for(i in 1:length(x)){
+        y = sum(x[[i]][[1]]$compBaseCount)
+        z = sum(c(zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[1]]@lengths[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[1]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[2]]@lengths[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[3]]@lengths[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[3]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[4]]@lengths[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[4]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[5]]@lengths[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[5]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[6]]@lengths[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[6]]@values >= 0]))
+        res[i] = y/z-x[[i]][[1]]$completness
+    }
+}
+
+testBaseCountcont<- function(x,zero){
+    for(i in 1:length(x)){
+        y = sum(x[[i]][[2]]$contBaseCount)
+        z = sum(c(zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@lengths[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@lengths[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@lengths[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@lengths[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@lengths[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@lengths[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0]))
+        res[i] = y/z-x[[i]][[2]]$contamination
+    }
+}
+
+
+testPifamCountComp <- function(x,zero){
+    for(i in 1:length(x)){
+        y = sum(x[[i]][[1]]$compPifamCount)
+        z = sum(rle(sort(c(zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[1]]@values[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[1]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[1]]@values[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[1]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[3]]@values[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[3]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[4]]@values[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[4]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[5]]@values[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[5]]@values >= 0],zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[6]]@values[zero[[which(names(zero) == x[[i]][[1]]$compChromID)]]$GENOME[[6]]@values >= 0])))$lengths)
+        res[i] = y/z-x[[i]][[1]]$completness
+    }
+}
+
+testPifamCountcont <- function(x,zero){
+    for(i in 1:length(x)){
+        y = sum(x[[i]][[2]]$contPifamCount)
+        z = sum(rle(sort(c(zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values[zero[[which(names(zero) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0])))$lengths)
+        res[i] = y/z-x[[i]][[2]]$contamination
+    }
+}
+
+contAndCompInIntervall <- function(x,compInt,contInt){
+    for(i in 1:length(x)){
+        if(x[[i]][[1]]$completness < compInt[1] || x[[i]][[1]]$completness > compInt[2]){
+            print(paste("completness out of bounds at: ",i))
+        }
+        if(x[[i]][[2]]$contamination < contInt[1] || x[[i]][[2]]$contamination > contInt[2]){
+            print(paste("contamination out of bounds at: ",i))
+        }
+    }
+}
+
+
+sum(rle(sort(c(zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[3]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[4]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[5]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[6]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0]))))
+
+sort(c(zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[3]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[4]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[5]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[6]]@values[zero[[which(names(zero) == x[[1]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0]))
 
 
 
 
 
-763166122
-13401
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
