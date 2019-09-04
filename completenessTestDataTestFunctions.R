@@ -76,7 +76,7 @@ meanDiffPiCountAndBaseCount <- function(data,cat,minContigLength,meanContigLengt
 }
 
 
-testForSpeedDependenceOnData <- function(datadir,cat,minContigLength,meanContigLength,nrExmpls){
+testForSpeedDependenceOnData <- function(datadir,cat,minContigLength,meanContigLength,nrExmpls,seed){
     data = dir(datadir)
     data = data[substr(data,1,3) == "IDz"]
     t = c()
@@ -86,7 +86,7 @@ testForSpeedDependenceOnData <- function(datadir,cat,minContigLength,meanContigL
         l[i] = length(dt)
         print(paste(data[i]," length: ",l[i]))
         tmp = Sys.time()
-        x = completenessTestData(dt,cat,minContigLength,meanContigLength,nrExmpls)
+        x = completenessTestData(dt,cat,minContigLength,meanContigLength,nrExmpls,seed = seed)
         t[i] = Sys.time() - tmp
     }
     return(t)

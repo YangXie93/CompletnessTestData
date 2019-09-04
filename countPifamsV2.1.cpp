@@ -116,8 +116,9 @@ vector<int> randomSpaces(int numSp,int free,int seed){
 
 //[[Rcpp::export]]
 
-vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int> lengths,int needed){
+vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int> lengths,int needed,int seed){
     default_random_engine generator;
+    generator.seed(seed);
     vector<int> res;
     res.reserve(lengths.size()/2);
     int share;
@@ -135,7 +136,7 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int> len
     }
     for(int i = 0; i < (int) res.size();i++){
         if(needed > 0){
-            int x = (rand() % (tmp1.size()));
+            int x = (generator() % (tmp1.size()));
             vector<int>::iterator it = next(tmp1.begin(),x);
             vector<int>::iterator acc = next(accession.begin(),x);
             share = round(needed *((*it)/(double)totalLength));
@@ -168,7 +169,6 @@ vector<int> fromWhichHowMany(int minContigLength,int totalLength,vector<int> len
 
 vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,vector<double> comp,vector<double> cont,vector<int> names,int seed = 0,string distr = "normal"){
     
-    Rcpp::Rcout << 1 << endl;//######################################################################################################
     default_random_engine generator;
     generator.seed(seed);
 
@@ -189,6 +189,7 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
     int at = 0;
     double partCovered;
     vector<int>::iterator which;
+    vector<int>::iterator max;
     bool swtch;
     int index;
     int l;
@@ -206,7 +207,6 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
     if(comp[0] == comp[1]){
         comp[0] = comp[1] -0.01;
     }
-    Rcpp::Rcout << 2 << endl;//######################################################################################################
     for(int i = 0; i < number; i++){
         
         partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
@@ -225,7 +225,6 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
             return res;
         }
         totLen = which;
-        Rcpp::Rcout << 3 << endl;//######################################################################################################
         baseNrs.push_back((int) ((*totLen) *partCovered));
         double contPart = ((cont[0] *100) + (generator() % ((int)(cont[1]*100) - (int)(cont[0] *100))))/100.0;
         if((*totLen) *contPart <= minContigLength){
@@ -237,41 +236,43 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
         
         count = 0;
         which = next(lengthSums.begin(),(generator() % lengthSums.size()));
-        while((*which) < *prev(baseNrs.end()) && count < lengthSums.size()){
-            which++;
-            count++;
+        max = lengthSums.begin();
+        while((*which) < *prev(baseNrs.end()) && count < lengthSums.size() || which == totLen){
             if(which == lengthSums.end()){
                 which = lengthSums.begin();
             }
-            if(which == totLen){
+            else{
+                if(which > max && which != totLen){
+                    max = which;
+                }
                 which++;
+                count++;
             }
         }
-        if((*which) < *prev(baseNrs.end()) && count < lengthSums.size()){
-            Rcpp::Rcout << "its me!" << endl;
+        if((*which) < *prev(baseNrs.end()) && count == lengthSums.size() || which == lengthSums.end()){
+            Rcpp::Rcout << "its me!"  << endl; //######################################################################################################
+            which = max;
             baseNrs.pop_back();
+            baseNrs.push_back((*which) *0.9);
         }
-        Rcpp::Rcout << 4 << endl;//######################################################################################################
         res.push_back(vector<int> (0));
         index = distance(lengthSums.begin(),which);
         indicies.push_back(distance(lengthSums.begin(),totLen));
         indicies.push_back(index);
+        if(indicies[0] == indicies[1]){
+            Rcpp::Rcout << "same !!!!!!!!!!!!!!!!"  << endl; //######################################################################################################
+        }
         for(n = 0; n < (int) baseNrs.size();n++){
-
             res.push_back(vector<int> (0));
-            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n]);
+            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+3);
             l = 0;
             for(j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
                 contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed+2);
-                int nn = 0;
-                for(vector<int>::iterator i = contigs.begin();i != contigs.end();i++){
-                    nn += (*i);
-                }
-                spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -nn,seed+1);
+                int contigSum = accumulate(contigs.begin(),contigs.end(),0);
+                spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -contigSum,seed+1);
                 co = contigs.begin();
                 sp = spaces.begin();
                 starts.reserve(contigs.size());
-                Rcpp::Rcout << 5 << endl; //######################################################################################################
                 ends.reserve(contigs.size());
                 swtch = true;
                 for(int m = 0;m < (int)contigs.size();m++){
@@ -306,6 +307,7 @@ vector<vector<int> > mkContigs(list<vector<int> >& lengths,vector<int>& lengthSu
         baseNrs.clear();
         indicies.clear();
     }
+    Rcpp::Rcout << "mkContigs end"  << endl; //######################################################################################################
     return res;
 }
 
@@ -531,6 +533,7 @@ Rcpp::List countPifams(list<list<vector<int> > >& pifams,list<list<vector<int> >
         }
         con++;
     }
+    
     return res;
 }
 

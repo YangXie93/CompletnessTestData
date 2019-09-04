@@ -48,12 +48,13 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
             Orfs[[length(Orfs)+1]] = tmp4
         }
     }
-    print(names(data)[nms])
-    print(length(pifams))
-    print(length(Orfs))
-    print(lengths)
-    print(lengthSums)
-    res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,as.integer(names(data)[nms]),seed,distr)
+    if(length(lengths) > 1){
+        res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,as.integer(names(data)[nms]),seed,distr)
+    }
+    else{
+        res = list()
+        print("zu wenig Genome in dem Daten Satz")
+    }
     print(Sys.time() -x)
     return(res)
 }
