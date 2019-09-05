@@ -225,7 +225,12 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         baseNrs.push_back((int) ((*totLen) *partCovered));
         double contPart = ((cont[0] *100) + (generator() % ((int)(cont[1]*100) - (int)(cont[0] *100))))/100.0;
         if((*totLen) *contPart <= minContigLength){
-            baseNrs.push_back(minContigLength);
+            if(contPart == 0){
+                baseNrs.push_back(0); 
+            }
+            else{
+                baseNrs.push_back(minContigLength);
+            }
         }
         else{
             baseNrs.push_back((*totLen) *contPart);

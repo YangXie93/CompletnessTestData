@@ -55,6 +55,7 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
         }
     }
     if(length(lengths) > 1){
+        print(Sys.time() -x)
         res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,accession,seed,distr)
     }
     else{
