@@ -62,34 +62,11 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// start_profiler
-SEXP start_profiler(SEXP str);
-RcppExport SEXP _CompletenessTestData_start_profiler(SEXP strSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type str(strSEXP);
-    rcpp_result_gen = Rcpp::wrap(start_profiler(str));
-    return rcpp_result_gen;
-END_RCPP
-}
-// stop_profiler
-SEXP stop_profiler();
-RcppExport SEXP _CompletenessTestData_stop_profiler() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(stop_profiler());
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_CompletenessTestData_mkContigs", (DL_FUNC) &_CompletenessTestData_mkContigs, 11},
     {"_CompletenessTestData_countPifams", (DL_FUNC) &_CompletenessTestData_countPifams, 4},
     {"_CompletenessTestData_compTestData", (DL_FUNC) &_CompletenessTestData_compTestData, 12},
-    {"_CompletenessTestData_start_profiler", (DL_FUNC) &_CompletenessTestData_start_profiler, 1},
-    {"_CompletenessTestData_stop_profiler", (DL_FUNC) &_CompletenessTestData_stop_profiler, 0},
     {NULL, NULL, 0}
 };
 

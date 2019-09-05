@@ -16,13 +16,3 @@ compTestData <- function(pifams, ORFs, lengths, lengthSums, minContigLength, mea
     .Call('_CompletenessTestData_compTestData', PACKAGE = 'CompletenessTestData', pifams, ORFs, lengths, lengthSums, minContigLength, meanContigLength, number, comp, con, names, seed, distr)
 }
 
-#' @export
-start_profiler <- function(str) {
-    .Call('_CompletenessTestData_start_profiler', PACKAGE = 'CompletenessTestData', str)
-}
-
-#' @export
-stop_profiler <- function() {
-    .Call('_CompletenessTestData_stop_profiler', PACKAGE = 'CompletenessTestData')
-}
-
