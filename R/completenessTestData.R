@@ -1,3 +1,5 @@
+#' @useDynLib CompletenessTestData
+#' @importFrom Rcpp sourceCpp
 #' @export
 completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal",comp = c(0.6,1.0),cont = c(0.0,0.4)){
     x = Sys.time()

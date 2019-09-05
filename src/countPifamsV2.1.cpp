@@ -16,6 +16,7 @@
 using namespace Rcpp;
 
 
+
 std::vector<int> randomContigs(int minContigLength,int meanContigLength,int covering,std::string distr = "normal",int seed = 0){
     if(covering <= minContigLength){
         return std::vector<int> (1,covering);
@@ -162,8 +163,8 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     return res;
 }
 
-
-
+//' @export
+//[[Rcpp::export]]
 std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,std::vector<std::vector<int> >& names,std::vector<int>& access,int seed = 0,std::string distr = "normal"){
     
     std::default_random_engine generator;
@@ -193,7 +194,6 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
     int l;
     int n;
     int j;
-    int m;
     int count;
     
     if(cont[1] > comp[0]){
@@ -211,14 +211,14 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         which = next(lengthSums.begin(),(generator() % lengthSums.size()));
         
         count = 0;
-        while(((*which)* partCovered) < minContigLength && count < lengthSums.size()){
+        while(((*which)* partCovered) < minContigLength && count < (int)lengthSums.size()){
             which++;
             count++;
             if(which == lengthSums.end()){
                 which = lengthSums.begin();
             }
         }
-        if(count == lengthSums.size() && (*which) < minContigLength){
+        if(count == (int)lengthSums.size() && (*which) < minContigLength){
             Rcerr << "Die mindest Länge ist zu groß für den Datensatz" << std::endl;
             return res;
         }
@@ -233,9 +233,9 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         }
         
         count = 0;
-        which = next(lengthSums.begin(),(generator() % lengthSums.size()));
+        which = next(lengthSums.begin(),(generator() % (int)lengthSums.size()));
         max = lengthSums.begin();
-        while((*which) < *prev(baseNrs.end()) && count < lengthSums.size() || which == totLen){
+        while(((*which) < *prev(baseNrs.end()) && count < (int)lengthSums.size()) || which == totLen){
             if(which == lengthSums.end()){
                 which = lengthSums.begin();
             }
@@ -247,7 +247,7 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
                 count++;
             }
         }
-        if((*which) < *prev(baseNrs.end()) && count == lengthSums.size() || which == lengthSums.end()){
+        if(((*which) < *prev(baseNrs.end()) && count == (int)lengthSums.size()) || which == lengthSums.end()){
             which = max;
             baseNrs.pop_back();
             baseNrs.push_back((*which) *0.9);
@@ -298,7 +298,6 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
                 res.push_back(ends);
                 
                 access.push_back(*next(nms,l));
-                
                 starts.clear();
                 ends.clear();
                 l++;
@@ -340,8 +339,8 @@ std::vector<int> intervallOverlap(int start1, int end1,int start2,int end2){
     return {s,e};
 }
 
-
-
+//' @export
+//[[Rcpp::export]]
 List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::vector<std::vector<int> > contigs,std::vector<int> &names){
     
     
@@ -376,7 +375,6 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     std::vector<int>::iterator orfValues;
     std::vector<int>::iterator orfWidths;
 
-    std::vector<int>::iterator nms = names.begin();
     std::list<std::vector<int> >::iterator orfs;
     std::list<std::vector<int> >::iterator pis;
 
@@ -539,7 +537,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     return res;
 }
 
-
+//' @export
 //[[Rcpp::export]]
 
 List compTestData(std::list<std::list<std::vector<int> > > pifams,std::list<std::list<std::vector<int> > > ORFs,std::list<std::vector<int> > lengths,std::vector<int> lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double> comp,std::vector<double> con,std::vector<std::vector<int> > names,int seed = 0,std::string distr = "normal"){
