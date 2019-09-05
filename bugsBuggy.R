@@ -2,6 +2,6 @@ rm(list = ls())
 library(CompletenessTestData)
 zero = readRDS("~/Daten/data.Rds")
 cat = readRDS("~/Daten/bac_dt.Rds")$DD
-for(i in 1:100){
-    x = completenessTestData(zero,cat,10000,20000,1000,seed = i)
-}
+
+x = completenessTestData(zero,cat,10,15,10,cont = c(0,0.01),comp = c(0.1,0.2))
+
