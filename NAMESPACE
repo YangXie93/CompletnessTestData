@@ -2,7 +2,11 @@
 
 export(completenessTestData)
 export(contAndCompInIntervall)
+export(getContigsAsIRanges)
 export(meanDiffPiCountAndBaseCount)
+export(mkContigs)
+export(plotIRanges)
+export(randomSpaces)
 export(testBaseCountcomp)
 export(testBaseCountcont)
 export(testForSpeedDependenceOnData)

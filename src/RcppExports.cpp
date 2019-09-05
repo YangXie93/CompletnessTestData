@@ -5,22 +5,56 @@
 
 using namespace Rcpp;
 
+// randomSpaces
+std::vector<int> randomSpaces(int numSp, int free, int seed);
+RcppExport SEXP _CompletenessTestData_randomSpaces(SEXP numSpSEXP, SEXP freeSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type numSp(numSpSEXP);
+    Rcpp::traits::input_parameter< int >::type free(freeSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(randomSpaces(numSp, free, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mkContigs
+std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths, std::vector<int>& lengthSums, int minContigLength, int meanContigLength, int number, std::vector<double>& comp, std::vector<double>& cont, std::vector<std::vector<int> >& names, std::vector<int>& access, int seed, std::string distr);
+RcppExport SEXP _CompletenessTestData_mkContigs(SEXP lengthsSEXP, SEXP lengthSumsSEXP, SEXP minContigLengthSEXP, SEXP meanContigLengthSEXP, SEXP numberSEXP, SEXP compSEXP, SEXP contSEXP, SEXP namesSEXP, SEXP accessSEXP, SEXP seedSEXP, SEXP distrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::list<std::vector<int> >& >::type lengths(lengthsSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type lengthSums(lengthSumsSEXP);
+    Rcpp::traits::input_parameter< int >::type minContigLength(minContigLengthSEXP);
+    Rcpp::traits::input_parameter< int >::type meanContigLength(meanContigLengthSEXP);
+    Rcpp::traits::input_parameter< int >::type number(numberSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type comp(compSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type cont(contSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<int> >& >::type names(namesSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type access(accessSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< std::string >::type distr(distrSEXP);
+    rcpp_result_gen = Rcpp::wrap(mkContigs(lengths, lengthSums, minContigLength, meanContigLength, number, comp, cont, names, access, seed, distr));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compTestData
-List compTestData(std::list<std::list<std::vector<int> > > pifams, std::list<std::list<std::vector<int> > > ORFs, std::list<std::vector<int> > lengths, std::vector<int> lengthSums, int minContigLength, int meanContigLength, int number, std::vector<double> comp, std::vector<double> con, std::vector<std::vector<int> > names, int seed, std::string distr);
+List compTestData(std::list<std::list<std::vector<int> > >& pifams, std::list<std::list<std::vector<int> > >& ORFs, std::list<std::vector<int> >& lengths, std::vector<int>& lengthSums, int minContigLength, int meanContigLength, int number, std::vector<double>& comp, std::vector<double>& con, std::vector<std::vector<int> >& names, int seed, std::string distr);
 RcppExport SEXP _CompletenessTestData_compTestData(SEXP pifamsSEXP, SEXP ORFsSEXP, SEXP lengthsSEXP, SEXP lengthSumsSEXP, SEXP minContigLengthSEXP, SEXP meanContigLengthSEXP, SEXP numberSEXP, SEXP compSEXP, SEXP conSEXP, SEXP namesSEXP, SEXP seedSEXP, SEXP distrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > > >::type pifams(pifamsSEXP);
-    Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > > >::type ORFs(ORFsSEXP);
-    Rcpp::traits::input_parameter< std::list<std::vector<int> > >::type lengths(lengthsSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type lengthSums(lengthSumsSEXP);
+    Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > >& >::type pifams(pifamsSEXP);
+    Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > >& >::type ORFs(ORFsSEXP);
+    Rcpp::traits::input_parameter< std::list<std::vector<int> >& >::type lengths(lengthsSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type lengthSums(lengthSumsSEXP);
     Rcpp::traits::input_parameter< int >::type minContigLength(minContigLengthSEXP);
     Rcpp::traits::input_parameter< int >::type meanContigLength(meanContigLengthSEXP);
     Rcpp::traits::input_parameter< int >::type number(numberSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type comp(compSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type con(conSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<int> > >::type names(namesSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type comp(compSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type con(conSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<int> >& >::type names(namesSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< std::string >::type distr(distrSEXP);
     rcpp_result_gen = Rcpp::wrap(compTestData(pifams, ORFs, lengths, lengthSums, minContigLength, meanContigLength, number, comp, con, names, seed, distr));
@@ -29,6 +63,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_CompletenessTestData_randomSpaces", (DL_FUNC) &_CompletenessTestData_randomSpaces, 3},
+    {"_CompletenessTestData_mkContigs", (DL_FUNC) &_CompletenessTestData_mkContigs, 11},
     {"_CompletenessTestData_compTestData", (DL_FUNC) &_CompletenessTestData_compTestData, 12},
     {NULL, NULL, 0}
 };

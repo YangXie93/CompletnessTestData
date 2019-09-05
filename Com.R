@@ -34,25 +34,31 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
     } 
     pifams = list()
     Orfs = list()
+    unqs = list()
     for(i in 1:length(data)){
         if(nms[i]){
             tmp3 = list()
             tmp4 = list()
+            tmp6 = c()
             for(j in 1:length(data[[i]]$GENOME)){
                 if((!is.null(data[[i]]$GENOME[[j]])) && (!is.null(data[[i]]$ORF[[j]]))){
                     tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@lengths
                     tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@values
                     tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@lengths
                     tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@values
+                    tmp6 = append(tmp6,data[[i]]$GENOME[[j]]@values)
                 }
             }
-            pifams[[length(pifams)+1]] = tmp3
-            Orfs[[length(Orfs)+1]] = tmp4
+            pifams[[i]] = tmp3
+            Orfs[[i]] = tmp4
+            tmp6 = sort(unique(tmp6))
+            unqs[[i]] = tmp6[2:length(tmp6)]
+            typeof(tmp6)
         }
     }
     if(length(lengths) > 1){
         print(Sys.time() -x)
-        res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,accession,seed,distr)
+        res = compTestData(pifams,Orfs,lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,accession,unqs,seed,distr)
     }
     else{
         res = list()
@@ -67,9 +73,9 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
 
 timeCompletenessTestData <- function(times,data,catalogue,minContigLength,meanContigLength,seed = 0){
     time = Sys.time()
-
+    
     x = completenessTestData(data,catalogue,minContigLength,meanContigLength,times,seed)
-
+    
     print(Sys.time() - time)
 }
 
