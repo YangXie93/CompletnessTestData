@@ -4,10 +4,10 @@
 completenessTestData <- function(data,catalogue,minContigLength,meanContigLength,number,seed = 0,distr = "normal",comp = c(0.6,1.0),cont = c(0.0,0.4)){
     x = Sys.time()
     data = data[unique(names(data))]
+    print(length(catalogue$GI.Vec))
     cat = subset(catalogue,GI.Vec %in% names(data))
     nms = names(data) %in% cat$GI.Vec
     IDs = names(data)[nms]
-    
     tmp1 = list()
     isUsed = c()
     for(i in 1:length(cat$comb)){

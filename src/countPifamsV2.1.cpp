@@ -163,8 +163,7 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     return res;
 }
 
-//' @export
-//[[Rcpp::export]]
+
 std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,std::vector<std::vector<int> >& names,std::vector<int>& access,int seed = 0,std::string distr = "normal"){
     
     std::default_random_engine generator;
@@ -339,8 +338,7 @@ std::vector<int> intervallOverlap(int start1, int end1,int start2,int end2){
     return {s,e};
 }
 
-//' @export
-//[[Rcpp::export]]
+
 List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::vector<std::vector<int> > contigs,std::vector<int> &names){
     
     
@@ -420,15 +418,15 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                 orfWidths++;
                                 orfValues++;
                             }
-                            while(o <  (*ends)){
+                            while(o <  (*ends) &&  orfWidths != (*orfs).end()){
                                 if((*orfValues) > 0){
                                     fill(notInOrf.begin(),notInOrf.end(),true);
-                                    while(o > n+(*width)){
+                                    while(o > n+(*width) && width != (*pis).end()){
                                         n += (*width);
                                         width++;
                                         values++;
                                     }
-                                    while(n < (*ends)){
+                                    while(n < (*ends) && width != (*pis).end()){
                                         if((*values) > 0){
                                             tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));
                                             if((int) tmp1.size() > 1){
@@ -537,7 +535,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     return res;
 }
 
-//' @export
+
 //[[Rcpp::export]]
 
 List compTestData(std::list<std::list<std::vector<int> > > pifams,std::list<std::list<std::vector<int> > > ORFs,std::list<std::vector<int> > lengths,std::vector<int> lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double> comp,std::vector<double> con,std::vector<std::vector<int> > names,int seed = 0,std::string distr = "normal"){
