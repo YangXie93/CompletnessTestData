@@ -35,25 +35,26 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
     pifams = list()
     Orfs = list()
     unqs = list()
+    n = 1
     for(i in 1:length(data)){
         if(nms[i]){
             tmp3 = list()
             tmp4 = list()
-            tmp6 = c()
+            tmp6 = vector(length = sum(length(data[[i]]$GENOME[1:6][[1]]@values)))
             for(j in 1:length(data[[i]]$GENOME)){
                 if((!is.null(data[[i]]$GENOME[[j]])) && (!is.null(data[[i]]$ORF[[j]]))){
-                    tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@lengths
-                    tmp3[[length(tmp3)+1]] = data[[i]]$GENOME[[j]]@values
-                    tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@lengths
-                    tmp4[[length(tmp4)+1]] = data[[i]]$ORF[[j]]@values
-                    tmp6 = append(tmp6,data[[i]]$GENOME[[j]]@values)
+                    tmp3[[n]] = data[[i]]$GENOME[[j]]@lengths
+                    tmp3[[n+1]] = data[[i]]$GENOME[[j]]@values
+                    tmp4[[n]] = data[[i]]$ORF[[j]]@lengths
+                    tmp4[[n+1]] = data[[i]]$ORF[[j]]@values
+                    tmp6 = c(tmp6,data[[i]]$GENOME[[j]]@values)
+                    n = n +2
                 }
             }
             pifams[[i]] = tmp3
             Orfs[[i]] = tmp4
             tmp6 = sort(unique(tmp6))
             unqs[[i]] = tmp6[2:length(tmp6)]
-            typeof(tmp6)
         }
     }
     if(length(lengths) > 1){

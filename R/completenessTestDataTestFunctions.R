@@ -139,7 +139,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     
     
     n = vector(mode = "integer")
-    c = mkContigs(lengths,lengthSums,10000,20000,10,c(0.6,1),c(0,0.4),accession,n,seed = seed)
+    c = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed = seed)
     
     cc = list()
     i = 1

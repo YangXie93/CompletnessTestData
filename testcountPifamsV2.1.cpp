@@ -44,7 +44,7 @@ std::vector<int> randomContigs(int minContigLength,int meanContigLength,int cove
                 normDist.reset();
             }
             if(distr == "exponential"){
-
+                
                 tmp = minContigLength + (expDist(generator));
                 if(tmp > minContigLength){
                     isSmalerZero++;
@@ -188,10 +188,10 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
     
     std::default_random_engine generator;
     generator.seed(seed);
-
+    
     std::vector<std::vector<int> > res;
     res.reserve(number);
-
+    
     std::vector<int>::iterator totLen;
     std::vector<int> baseNrs;
     std::vector<int> indicies;
@@ -299,18 +299,18 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
                     at += (*co);
                     sp++;
                     co++;
-                    if((*sp) > 0 || at == (*next(lengthSums.begin(),indicies[n]))){
+                    if((*sp) > 0){
                         ends.push_back(at);
                         swtch = true;
                     }
                     else{
-                      swtch = false;
+                        swtch = false;
                     }
                 }
                 if(ends.size() == 0){
                     ends.push_back(at);
                 }
-
+                
                 at = 0;
                 res.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j -1]});
                 res.push_back(starts);
@@ -381,9 +381,9 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     int contTotal = 0;
     int transfer;
     int GenNr;
-
+    
     std::vector<int> tmp1;
-
+    
     std::vector<int>::iterator trans;
     std::vector<int>::iterator t;
     std::vector<int>::iterator starts;
@@ -392,17 +392,16 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     std::vector<int>::iterator values;
     std::vector<int>::iterator orfValues;
     std::vector<int>::iterator orfWidths;
-
+    
     std::list<std::vector<int> >::iterator orfs;
     std::list<std::vector<int> >::iterator pis;
-
+    
     std::vector<std::vector<int> >::iterator con = contigs.begin();
-
+    
     std::vector<int>::iterator bN;
     std::vector<bool>::iterator nio;
     std::vector<int>::iterator tms;
     bool swtch = false;
-    bool didIt;
     
     while(distance(con,contigs.end()) > 0){
         // alle Werte
@@ -418,6 +417,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                 name.push_back(*((*con).begin()));
                 if(transfer != (int)pifams.size()){
                     orfs = (*next(ORFs.begin(),transfer)).begin();
+                    Rcout << "nur einmal\n";
                     for(pis = (*next(pifams.begin(),transfer)).begin();distance(pis,(*next(pifams.begin(),transfer)).end()) > 0;pis = next(pis,2)){
                         // für alle 6 GENOME und ORF Werte
                         starts = (*next(con)).begin();
@@ -432,13 +432,16 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                         
                         for(starts = (*next(con)).begin();starts != (*next(con)).end();starts++){
                             //für alle Length Werte in ORF
+                            Rcout << "start " << (*starts) << "\n\n";
                             x += (*ends) - (*starts) +1;
                             while((*starts) > (o +(*orfWidths)) && orfWidths != (*orfs).end()){
                                 o += (*orfWidths);
                                 orfWidths++;
                                 orfValues++;
                             }
+                            Rcout << "o " << o << std::endl;
                             while(o <  (*ends) &&  orfWidths != (*orfs).end()){
+                                Rcout << "orfValues " << (*orfValues) << "\n";
                                 if((*orfValues) > 0){
                                     fill(notInOrf.begin(),notInOrf.end(),true);
                                     while(o > n+(*width) && width != (*pis).end()){
@@ -446,9 +449,15 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                         width++;
                                         values++;
                                     }
+                                    Rcout << "n " << n << std::endl;
+                                    Rcout << "n + width " << n +(*width) << "\n"; 
                                     while(n < (*ends) && width != (*pis).end()){
+                                        Rcout << "values " << (*values) << "\n";
                                         if((*values) > 0){
                                             tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));
+                                            if((*values) == 281){
+                                                Rcout << tmp1[0] << " " << tmp1[1] << std::endl;
+                                            }
                                             if((int) tmp1.size() > 1){
                                                 t = find(id.begin(),id.end(),(*values));
                                                 if(t == id.end()){
@@ -473,11 +482,6 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                             n += (*width);
                                             width++;
                                             values++;
-                                            while(n+(*width) >= o && orfWidths != (*orfs).end()){
-                                                o += (*orfWidths);
-                                                orfWidths++;
-                                                orfValues++;
-                                            }
                                         }
                                         else{
                                             break;
@@ -564,6 +568,12 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
 
 List compTestData(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::list<std::vector<int> > &lengths,std::vector<int> &lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double> &comp,std::vector<double> &con,std::vector<std::vector<int> > &names,int seed = 0,std::string distr = "normal"){
     std::vector<int> access;
-    std::vector<std::vector<int> > conts = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,comp,con,names,access,seed,distr);
+    std::vector<std::vector<int> > conts;
+    conts.push_back(std::vector<int> (0));
+    conts.push_back(std::vector<int> (0));
+    conts.push_back(std::vector<int> (1,763146576));
+    conts.push_back(std::vector<int> (1,537280));
+    conts.push_back(std::vector<int> (1,557253));
+    access.push_back(32);
     return countPifams(pifams,ORFs,conts,access);
 }
