@@ -331,33 +331,31 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
 
 
 
-std::vector<int> intervallOverlap(int start1, int end1,int start2,int end2){
-    int s;
-    int e;
+int intervallOverlap(int start1, int end1,int start2,int end2){
+
     if(start2 > end1 || end2 < start1 ){
-        return {0};
+        return 0;
     }
     if(start1 > start2){
-        s = start1;
         if(end2 < end1){
-            e = end2;
+            return end2 -start1 +1;
         }
         else{
-            e = end1;
+            return end1 - start1+1;
         }
     }
     else{
-        s = start2;
         if(end2 < end1){
-            e = end2;
+            return end2 - start2+1;
         }
         else{
-            e = end1;
+            return end1 - start2+1;
         }
     }
-    return {s,e};
 }
 
+//' @export
+//[[Rcpp::export]]
 
 List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::vector<std::vector<int> > &contigs,std::vector<int> &names){
     
@@ -382,7 +380,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     int transfer;
     int GenNr;
 
-    std::vector<int> tmp1;
+    int tmp1;
 
     std::vector<int>::iterator trans;
     std::vector<int>::iterator t;
@@ -402,7 +400,6 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     std::vector<bool>::iterator nio;
     std::vector<int>::iterator tms;
     bool swtch = false;
-    bool didIt;
     
     while(distance(con,contigs.end()) > 0){
         // alle Werte
@@ -449,10 +446,10 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                     while(n < (*ends) && width != (*pis).end()){
                                         if((*values) > 0){
                                             tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));
-                                            if((int) tmp1.size() > 1){
+                                            if(tmp1 > 0){
                                                 t = find(id.begin(),id.end(),(*values));
                                                 if(t == id.end()){
-                                                    baseNum.push_back(tmp1[1] - tmp1[0] +1);
+                                                    baseNum.push_back(tmp1);
                                                     times.push_back(1);
                                                     id.push_back((*values));
                                                     notInOrf.push_back(false);
@@ -465,7 +462,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                                         (*tms)++;
                                                         (*nio) = false;
                                                     }
-                                                    (*bN) += tmp1[1] - tmp1[0] +1;
+                                                    (*bN) += tmp1;
                                                 }
                                             }
                                         }

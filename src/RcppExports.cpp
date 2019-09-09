@@ -39,6 +39,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// countPifams
+List countPifams(std::list<std::list<std::vector<int> > >& pifams, std::list<std::list<std::vector<int> > >& ORFs, std::vector<std::vector<int> >& contigs, std::vector<int>& names);
+RcppExport SEXP _CompletenessTestData_countPifams(SEXP pifamsSEXP, SEXP ORFsSEXP, SEXP contigsSEXP, SEXP namesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > >& >::type pifams(pifamsSEXP);
+    Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > >& >::type ORFs(ORFsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<int> >& >::type contigs(contigsSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type names(namesSEXP);
+    rcpp_result_gen = Rcpp::wrap(countPifams(pifams, ORFs, contigs, names));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compTestData
 List compTestData(std::list<std::list<std::vector<int> > >& pifams, std::list<std::list<std::vector<int> > >& ORFs, std::list<std::vector<int> >& lengths, std::vector<int>& lengthSums, int minContigLength, int meanContigLength, int number, std::vector<double>& comp, std::vector<double>& con, std::vector<std::vector<int> >& names, int seed, std::string distr);
 RcppExport SEXP _CompletenessTestData_compTestData(SEXP pifamsSEXP, SEXP ORFsSEXP, SEXP lengthsSEXP, SEXP lengthSumsSEXP, SEXP minContigLengthSEXP, SEXP meanContigLengthSEXP, SEXP numberSEXP, SEXP compSEXP, SEXP conSEXP, SEXP namesSEXP, SEXP seedSEXP, SEXP distrSEXP) {
@@ -65,6 +79,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_CompletenessTestData_randomSpaces", (DL_FUNC) &_CompletenessTestData_randomSpaces, 3},
     {"_CompletenessTestData_mkContigs", (DL_FUNC) &_CompletenessTestData_mkContigs, 11},
+    {"_CompletenessTestData_countPifams", (DL_FUNC) &_CompletenessTestData_countPifams, 4},
     {"_CompletenessTestData_compTestData", (DL_FUNC) &_CompletenessTestData_compTestData, 12},
     {NULL, NULL, 0}
 };

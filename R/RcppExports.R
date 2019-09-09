@@ -11,6 +11,11 @@ mkContigs <- function(lengths, lengthSums, minContigLength, meanContigLength, nu
     .Call('_CompletenessTestData_mkContigs', PACKAGE = 'CompletenessTestData', lengths, lengthSums, minContigLength, meanContigLength, number, comp, cont, names, access, seed, distr)
 }
 
+#' @export
+countPifams <- function(pifams, ORFs, contigs, names) {
+    .Call('_CompletenessTestData_countPifams', PACKAGE = 'CompletenessTestData', pifams, ORFs, contigs, names)
+}
+
 compTestData <- function(pifams, ORFs, lengths, lengthSums, minContigLength, meanContigLength, number, comp, con, names, seed = 0L, distr = "normal") {
     .Call('_CompletenessTestData_compTestData', PACKAGE = 'CompletenessTestData', pifams, ORFs, lengths, lengthSums, minContigLength, meanContigLength, number, comp, con, names, seed, distr)
 }

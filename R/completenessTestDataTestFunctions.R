@@ -12,9 +12,11 @@ testBaseCountcomp<- function(x,data){
 testBaseCountcont<- function(x,data){
     res = c()
     for(i in 1:length(x)){
-        y = sum(x[[i]][[2]]$contBaseCount)
-        z = sum(c(data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0]))
-        res[i] = y/z-x[[i]][[2]]$contamination
+        if(length(x[[i]]) > 1){
+            y = sum(x[[i]][[2]]$contBaseCount)
+            z = sum(c(data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@lengths[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0]))
+            res[i] = y/z-x[[i]][[2]]$contamination
+        }
     }
     return(res)
 }
@@ -33,9 +35,11 @@ testPifamCountComp <- function(x,data){
 testPifamCountcont <- function(x,data){
     res = c()
     for(i in 1:length(x)){
-        y = sum(x[[i]][[2]]$contPifamCount)
-        z = sum(rle(sort(c(data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0])))$lengths)
-        res[i] = y/z-x[[i]][[2]]$contamination
+        if(length(x[[i]]) > 1){
+            y = sum(x[[i]][[2]]$contPifamCount)
+            z = sum(rle(sort(c(data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[2]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[3]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[4]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[5]]@values >= 0],data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values[data[[which(names(data) == x[[i]][[2]]$contChromID)]]$GENOME[[6]]@values >= 0])))$lengths)
+            res[i] = y/z-x[[i]][[2]]$contamination
+        }
     }
     return(res)
 }

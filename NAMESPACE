@@ -2,6 +2,7 @@
 
 export(completenessTestData)
 export(contAndCompInIntervall)
+export(countPifams)
 export(getContigsAsIRanges)
 export(meanDiffPiCountAndBaseCount)
 export(mkContigs)
