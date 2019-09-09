@@ -28,6 +28,7 @@ compTestData <- function(pifams, ORFs, lengths, lengthSums, minContigLength, mea
     .Call('_CompletenessTestData_compTestData', PACKAGE = 'CompletenessTestData', pifams, ORFs, lengths, lengthSums, minContigLength, meanContigLength, number, comp, con, names, seed, distr)
 }
 
+#' @export
 chooseGenomesCpp <- function(lengthSums, minContigLength, seed = 1L, times = 100L) {
     .Call('_CompletenessTestData_chooseGenomesCpp', PACKAGE = 'CompletenessTestData', lengthSums, minContigLength, seed, times)
 }

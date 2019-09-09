@@ -163,6 +163,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     return(cc)
     
 }
+
 #' @export
 chooseGenomes <- function(data,catalogue,minContigLength,times,seed){
     data = data[unique(names(data))]
@@ -195,5 +196,5 @@ chooseGenomes <- function(data,catalogue,minContigLength,times,seed){
         accession[[i]] = tmp5
     }
     
-    return(chooseGenomes(lengthSums,minContigLength,seed = seed,times = times))
+    return(chooseGenomesCpp(lengthSums,minContigLength,seed,times))
 }

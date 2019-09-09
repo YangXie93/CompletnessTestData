@@ -565,7 +565,7 @@ List compTestData(std::list<std::list<std::vector<int> > > &pifams,std::list<std
 }
 
 
-
+//' @export
 //[[Rcpp::export]]
 std::vector<int> chooseGenomesCpp(std::vector<int> lengthSums,int minContigLength,int seed = 1,int times = 100){
     
