@@ -20,6 +20,9 @@ using namespace Rcpp;
 
 
 std::vector<int> randomContigs(int minContigLength,int meanContigLength,int covering,std::string distr = "normal",int seed = 0){
+    if(covering <= 0){
+        return std::vector<int> (1,0);
+    }
     if(covering <= minContigLength){
         return std::vector<int> (1,covering);
     }
@@ -149,16 +152,16 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     int j = 0;
     for(int i = 1;i < (int) lengths.size();i+= 2){
         res.push_back(0);
-        if(lengths[i] > minContigLength){
+        if(lengths[i] >= minContigLength){
             tmp1.push_back(lengths[i]);
             accession.push_back(j);
         }
         else{
-            totalLength -= tmp1[i];
+            totalLength -= lengths[i];
         }
         j++;
     }
-    for(int i = 0; i < (int) tmp1.size();i++){
+    for(int i = 0; i < (int) res.size();i++){
         if(needed > 0){
             int x = (generator() % (tmp1.size()));
             std::vector<int>::iterator it = next(tmp1.begin(),x);
@@ -288,42 +291,44 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
             l = 0;
             for(j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
                 contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed+2);
-                int contigSum = accumulate(contigs.begin(),contigs.end(),0);
-                spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -contigSum,seed+1);
-                co = contigs.begin();
-                sp = spaces.begin();
-                starts.reserve(contigs.size());
-                ends.reserve(contigs.size());
-                swtch = true;
-                for(int m = 0;m < (int)contigs.size();m++){
-                    at += (*sp);
-                    if(swtch){
-                        starts.push_back(at+1);
+                if(contigs[1] != 0 && contigs.size() > 1){
+                    int contigSum = accumulate(contigs.begin(),contigs.end(),0);
+                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -contigSum,seed+1);
+                    co = contigs.begin();
+                    sp = spaces.begin();
+                    starts.reserve(contigs.size());
+                    ends.reserve(contigs.size());
+                    swtch = true;
+                    for(int m = 0;m < (int)contigs.size();m++){
+                            at += (*sp);
+                            if(swtch){
+                                starts.push_back(at+1);
+                            }
+                            at += (*co);
+                            sp++;
+                            co++;
+                            if((*sp) > 0 || at == (*next(lengthSums.begin(),indicies[n]))){
+                                ends.push_back(at);
+                                swtch = true;
+                            }
+                            else{
+                              swtch = false;
+                            }
                     }
-                    at += (*co);
-                    sp++;
-                    co++;
-                    if((*sp) > 0 || at == (*next(lengthSums.begin(),indicies[n]))){
+                    if(ends.size() == 0){
                         ends.push_back(at);
-                        swtch = true;
                     }
-                    else{
-                      swtch = false;
-                    }
+    
+                    at = 0;
+                    res.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j -1]});
+                    res.push_back(starts);
+                    res.push_back(ends);
+                    
+                    access.push_back(*next(nms,l));
+                    starts.clear();
+                    ends.clear();
+                    l++;
                 }
-                if(ends.size() == 0){
-                    ends.push_back(at);
-                }
-
-                at = 0;
-                res.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j -1]});
-                res.push_back(starts);
-                res.push_back(ends);
-                
-                access.push_back(*next(nms,l));
-                starts.clear();
-                ends.clear();
-                l++;
             }
         }
         baseNrs.clear();

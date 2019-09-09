@@ -144,7 +144,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     
     n = vector(mode = "integer")
     c = CompletenessTestData::mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed = seed)
-    
+    #print(c)
     cc = list()
     i = 1
     while(i <= length(c)){
@@ -162,10 +162,13 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
                     con[[length(con)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
                     i = i +3
                 }
-                if(length(con) != 0)
+                if(length(con) != 0){
                     tc[[2]] = con
                     names(tc) = c("completness","contamination")
-                    
+                }
+                else{
+                    names(tc) = c("completeness")
+                }
                 cc[[length(cc) +1]] = tc
         }
         else{
@@ -210,3 +213,43 @@ chooseGenomes <- function(data,catalogue,minContigLength,times,seed){
     
     return(chooseGenomesCpp(lengthSums,minContigLength,seed,times))
 }
+
+#' @export
+possibleContaminationMatrix <- function(data,catalogue){
+    data = data[unique(names(data))]
+    cat = subset(catalogue,GI.Vec %in% names(data))
+    nms = names(data) %in% cat$GI.Vec
+    IDs = names(data)[nms]
+    tmp1 = list()
+    isUsed = c()
+    
+    combNums = c()
+    
+    for(i in 1:length(cat$comb)){
+        if(!(cat$comb[i] %in% isUsed)){
+            tmp1[[length(tmp1)+1]] = cat$GI.Vec[which(cat$comb == cat$comb[i])]
+            isUsed[length(isUsed)+1] = cat$comb[i]
+            combNums[length(combNums)+1] = as.character(cat$comb[i])
+        }
+    }
+
+    lengthSums = c()
+    for(i in 1:length(tmp1)){
+        lengthSums[i] = 0
+        for(j in 1:length(tmp1[[i]])){
+            lengthSums[i] = lengthSums[i] + sum(data[[tmp1[[i]][j]]]$GENOME[[1]]@lengths)
+        }
+    }
+    res = matrix(0,nrow = length(lengthSums),ncol = 10)
+    row.names(res) = combNums
+    colnames(res) = c("0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9","1")
+    contParts = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+    for(i in 1:length(lengthSums)){
+        for(n in 1:length(contParts)){
+            res[i,n] = length(which(lengthSums >= lengthSums[i] *contParts[n]))
+        }
+    }
+    return(res)     
+}
+
+
