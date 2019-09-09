@@ -92,6 +92,9 @@ for(i in 1:length(data$`763146576`$ORF[[6]]@lengths)){
 
 for(i in 1:100){
     conts = getContigsAsIRanges(test,catalogue,15000,25000,1000,i)
+    for(j in 1:length(conts)){
+        print(conts[j][(end(conts[[j]]) -start(conts[[j]]) < 0)])
+    }
 }
 
 
