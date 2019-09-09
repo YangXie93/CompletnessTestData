@@ -133,3 +133,6 @@ for(i in 1:length(x[[1]][[1]]$compBaseCount)){
         print(paste(bn,x[[1]][[1]]$compBaseCount[i]))
     }
 }
+
+
+

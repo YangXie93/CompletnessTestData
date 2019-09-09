@@ -5,6 +5,30 @@
 
 using namespace Rcpp;
 
+// return10
+int return10();
+RcppExport SEXP _CompletenessTestData_return10() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(return10());
+    return rcpp_result_gen;
+END_RCPP
+}
+// chooseGenomes
+std::vector<int> chooseGenomes(std::vector<int> lengthSums, int minContigLength, int seed, int times);
+RcppExport SEXP _CompletenessTestData_chooseGenomes(SEXP lengthSumsSEXP, SEXP minContigLengthSEXP, SEXP seedSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<int> >::type lengthSums(lengthSumsSEXP);
+    Rcpp::traits::input_parameter< int >::type minContigLength(minContigLengthSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(chooseGenomes(lengthSums, minContigLength, seed, times));
+    return rcpp_result_gen;
+END_RCPP
+}
 // randomSpaces
 std::vector<int> randomSpaces(int numSp, int free, int seed);
 RcppExport SEXP _CompletenessTestData_randomSpaces(SEXP numSpSEXP, SEXP freeSEXP, SEXP seedSEXP) {
@@ -75,12 +99,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// chooseGenomesCpp
+std::vector<int> chooseGenomesCpp(std::vector<int> lengthSums, int minContigLength, int seed, int times);
+RcppExport SEXP _CompletenessTestData_chooseGenomesCpp(SEXP lengthSumsSEXP, SEXP minContigLengthSEXP, SEXP seedSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<int> >::type lengthSums(lengthSumsSEXP);
+    Rcpp::traits::input_parameter< int >::type minContigLength(minContigLengthSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(chooseGenomesCpp(lengthSums, minContigLength, seed, times));
+    return rcpp_result_gen;
+END_RCPP
+}
+// testDefaultRandomEngine
+int testDefaultRandomEngine(int seed);
+RcppExport SEXP _CompletenessTestData_testDefaultRandomEngine(SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(testDefaultRandomEngine(seed));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_CompletenessTestData_return10", (DL_FUNC) &_CompletenessTestData_return10, 0},
+    {"_CompletenessTestData_chooseGenomes", (DL_FUNC) &_CompletenessTestData_chooseGenomes, 4},
     {"_CompletenessTestData_randomSpaces", (DL_FUNC) &_CompletenessTestData_randomSpaces, 3},
     {"_CompletenessTestData_mkContigs", (DL_FUNC) &_CompletenessTestData_mkContigs, 11},
     {"_CompletenessTestData_countPifams", (DL_FUNC) &_CompletenessTestData_countPifams, 4},
     {"_CompletenessTestData_compTestData", (DL_FUNC) &_CompletenessTestData_compTestData, 12},
+    {"_CompletenessTestData_chooseGenomesCpp", (DL_FUNC) &_CompletenessTestData_chooseGenomesCpp, 4},
+    {"_CompletenessTestData_testDefaultRandomEngine", (DL_FUNC) &_CompletenessTestData_testDefaultRandomEngine, 1},
     {NULL, NULL, 0}
 };
 

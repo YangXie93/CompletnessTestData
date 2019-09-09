@@ -143,19 +143,57 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     
     
     n = vector(mode = "integer")
-    c = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed = seed)
+    c = CompletenessTestData::mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed = seed)
     
     cc = list()
     i = 1
     while(i <= length(c)){
         if(length(c[[i]]) > 0){
-            if(length(c[[i+1]]) > 0){
-                cc[[length(cc)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
+            if(length(c[[i +1]]) > 0){
+                tc = list()
+                while(i <= length(c) && length(c[[i]]) > 0){
+                    tc[[length(cc)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
+                    i = i +3
+                }
+                cc[[length(cc) +1]] = tc
             }
-            i = i +2
         }
-        i = i + 1
+        i = i +1
     }
     return(cc)
     
+}
+#' @export
+chooseGenomes <- function(data,catalogue,minContigLength,times,seed){
+    data = data[unique(names(data))]
+    cat = subset(catalogue,GI.Vec %in% names(data))
+    nms = names(data) %in% cat$GI.Vec
+    IDs = names(data)[nms]
+    tmp1 = list()
+    isUsed = c()
+    for(i in 1:length(cat$comb)){
+        if(!(cat$comb[i] %in% isUsed)){
+            tmp1[[length(tmp1)+1]] = cat$GI.Vec[which(cat$comb == cat$comb[i])]
+            isUsed[length(isUsed)+1] = cat$comb[i]
+            
+        }
+    }
+    lengths = list()
+    lengthSums = c()
+    accession = list()
+    for(i in 1:length(tmp1)){
+        tmp2 = c()
+        tmp5 = c()
+        lengthSums[i] = 0
+        for(j in 1:length(tmp1[[i]])){
+            tmp5[j] = which(IDs == tmp1[[i]][j]) -1
+            tmp2[length(tmp2)+1] = as.numeric(tmp1[[i]][j])
+            tmp2[length(tmp2)+1] = sum(data[[tmp1[[i]][j]]]$GENOME[[1]]@lengths)
+            lengthSums[i] = lengthSums[i] + tmp2[length(tmp2)]
+        }
+        lengths[[i]] = tmp2
+        accession[[i]] = tmp5
+    }
+    
+    return(chooseGenomes(lengthSums,minContigLength,seed = seed,times = times))
 }
