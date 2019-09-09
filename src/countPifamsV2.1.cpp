@@ -149,11 +149,16 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     int j = 0;
     for(int i = 1;i < (int) lengths.size();i+= 2){
         res.push_back(0);
-        tmp1.push_back(lengths[i]);
-        accession.push_back(j);
+        if(lengths[i] > minContigLength){
+            tmp1.push_back(lengths[i]);
+            accession.push_back(j);
+        }
+        else{
+            totalLength -= tmp1[i];
+        }
         j++;
     }
-    for(int i = 0; i < (int) res.size();i++){
+    for(int i = 0; i < (int) tmp1.size();i++){
         if(needed > 0){
             int x = (generator() % (tmp1.size()));
             std::vector<int>::iterator it = next(tmp1.begin(),x);

@@ -149,16 +149,28 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     i = 1
     while(i <= length(c)){
         if(length(c[[i]]) > 0){
-            if(length(c[[i +1]]) > 0){
                 tc = list()
+                com = list()
+                con = list()
                 while(i <= length(c) && length(c[[i]]) > 0){
-                    tc[[length(cc)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
+                    com[[length(com)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
                     i = i +3
                 }
+                i = i +1
+                tc[[1]] = com
+                while(i <= length(c) && length(c[[i]]) > 0){
+                    con[[length(con)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
+                    i = i +3
+                }
+                if(length(con) != 0)
+                    tc[[2]] = con
+                    names(tc) = c("completness","contamination")
+                    
                 cc[[length(cc) +1]] = tc
-            }
         }
-        i = i +1
+        else{
+            i = i +1
+        }
     }
     return(cc)
     
