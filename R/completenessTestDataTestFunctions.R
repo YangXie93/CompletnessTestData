@@ -186,7 +186,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
             i = i +1
         }
     }
-    return(c)
+    return(cc)
     
 }
 
