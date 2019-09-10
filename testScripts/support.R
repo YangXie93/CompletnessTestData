@@ -135,4 +135,12 @@ for(i in 1:length(x[[1]][[1]]$compBaseCount)){
 }
 
 
-
+for(i in 1:length(c)){
+    for(j in 1:length(c[[i]])){
+        for(n in 1:length(c[[i]][[j]])){
+            if(length(c[[i]][[j]][[n]]) <= 1){
+                print(i)
+            }
+        }
+    }
+}

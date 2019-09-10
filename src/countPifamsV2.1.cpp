@@ -161,32 +161,34 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         }
         j++;
     }
-    for(int i = 0; i < (int) res.size();i++){
-        if(needed > 0){
-            int x = (generator() % (tmp1.size()));
-            std::vector<int>::iterator it = next(tmp1.begin(),x);
-            std::vector<int>::iterator acc = next(accession.begin(),x);
-            share = round(needed *((*it)/(double)totalLength));
-            std::poisson_distribution<int> distribution(share);
-            tmp = distribution(generator);
-            if(tmp > (*it)){
-                tmp -= tmp %(*it);
+    if(tmp1.size() > 0){
+        int orientation = tmp1.size();
+        for(int i = 0; i < orientation;i++){
+            if(needed > 0){
+                int x = (generator() % (tmp1.size()));
+                std::vector<int>::iterator it = next(tmp1.begin(),x);
+                std::vector<int>::iterator acc = next(accession.begin(),x);
+                share = round(needed *((*it)/(double)totalLength));
+                std::poisson_distribution<int> distribution(share);
+                tmp = distribution(generator);
+                if(tmp > (*it)){
+                    tmp -= tmp %(*it);
+                }
+                if(tmp >= minContigLength){
+                    needed -= tmp;
+                    totalLength -= (*it);
+                    res[(*acc)] = tmp;
+                }
+                else{
+                    needed -= minContigLength;
+                    totalLength -= (*it);
+                    res[(*acc)] = minContigLength;
+                }
+                tmp1.erase(it);
+                accession.erase(acc);
             }
-            if(tmp >= minContigLength){
-                needed -= tmp;
-                totalLength -= (*it);
-                res[(*acc)] = tmp;
-            }
-            else{
-                needed -= minContigLength;
-                totalLength -= (*it);
-                res[(*acc)] = minContigLength;
-            }
-            tmp1.erase(it);
-            accession.erase(acc);
         }
     }
-
     return res;
 }
 
@@ -291,7 +293,7 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
             l = 0;
             for(j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
                 contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed+2);
-                if(contigs[1] != 0 && contigs.size() > 1){
+                if( contigs.size() > 1 && contigs[1] != 0){
                     int contigSum = accumulate(contigs.begin(),contigs.end(),0);
                     spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -contigSum,seed+1);
                     co = contigs.begin();
