@@ -47,7 +47,7 @@ std::vector<int> randomContigs(int minContigLength,int meanContigLength,int cove
                 normDist.reset();
             }
             if(distr == "exponential"){
-
+                
                 tmp = minContigLength + (expDist(generator));
                 if(tmp > minContigLength){
                     isSmalerZero++;
@@ -198,10 +198,10 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
     
     std::default_random_engine generator;
     generator.seed(seed);
-
+    
     std::vector<std::vector<int> > res;
     res.reserve(number);
-
+    
     std::vector<int>::iterator totLen;
     std::vector<int> baseNrs;
     std::vector<int> indicies;
@@ -302,26 +302,25 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
                     ends.reserve(contigs.size());
                     swtch = true;
                     for(int m = 0;m < (int)contigs.size();m++){
-                            at += (*sp);
-                            if(swtch){
-                                starts.push_back(at+1);
-                            }
-                            at += (*co);
-                            sp++;
-                            co++;
-                            if((*sp) > 0){
-                                ends.push_back(at);
-                                swtch = true;
-                            }
-                            else{
-                              swtch = false;
-                            }
+                        at += (*sp);
+                        if(swtch){
+                            starts.push_back(at+1);
+                        }
+                        at += (*co);
+                        sp++;
+                        co++;
+                        if((*sp) > 0 || at == (*next(lengthSums.begin(),indicies[n]))){
+                            ends.push_back(at);
+                            swtch = true;
+                        }
+                        else{
+                            swtch = false;
+                        }
                     }
-                    at += (*sp);
-                    if(ends.size() == 0 || (*sp) == 0){
+                    if(ends.size() == 0){
                         ends.push_back(at);
                     }
-    
+                    
                     at = 0;
                     res.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j -1]});
                     res.push_back(starts);
@@ -344,7 +343,7 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
 
 
 int intervallOverlap(int start1, int end1,int start2,int end2){
-
+    
     if(start2 > end1 || end2 < start1 ){
         return 0;
     }
@@ -614,6 +613,3 @@ int testDefaultRandomEngine(int seed){
     generator.seed(seed);
     return generator();
 }
-
-
-

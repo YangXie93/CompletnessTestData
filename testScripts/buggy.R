@@ -4,4 +4,6 @@ source('~/CompletnessTestData/R/completenessTestData.R')
 data = readRDS("~/Daten/data.Rds")
 catalogue = readRDS("~/Daten/bac_dt.Rds")$DD
 
-x = completenessTestData(data,catalogue,10000,20000,1000,seed = 1)
+for(i in 1:100){
+    x = completenessTestData(data,catalogue,10000,25000,10000,seed = i)
+}

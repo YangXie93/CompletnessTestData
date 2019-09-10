@@ -144,7 +144,6 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     
     n = vector(mode = "integer")
     c = CompletenessTestData::mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed = seed)
-    #print(c)
     cc = list()
     i = 1
     while(i <= length(c)){
@@ -153,12 +152,24 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
                 com = list()
                 con = list()
                 while(i <= length(c) && length(c[[i]]) > 0){
+                    if( length((c[[i+2]] -c[[i+1]])[(c[[i+2]] -c[[i+1]]) <= 0]) > 0){
+                        print(paste("comp",i))
+                        print(c[[i]])
+                        print(c[[i+1]])
+                        print(c[[i+2]])
+                    }
                     com[[length(com)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
                     i = i +3
                 }
                 i = i +1
                 tc[[1]] = com
                 while(i <= length(c) && length(c[[i]]) > 0){
+                    if(length((c[[i+2]] -c[[i+1]])[(c[[i+2]] -c[[i+1]]) <= 0]) > 0){
+                        print(paste("cont",i))
+                        print(c[[i]])
+                        print(c[[i+1]])
+                        print(c[[i+2]])
+                    }
                     con[[length(con)+1]] = IRanges(start = c[[i+1]],end = c[[i+2]],names = rep(c[[i]],length(c[[i+1]])))
                     i = i +3
                 }
@@ -175,7 +186,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
             i = i +1
         }
     }
-    return(cc)
+    return(c)
     
 }
 

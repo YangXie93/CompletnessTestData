@@ -144,3 +144,8 @@ for(i in 1:length(c)){
         }
     }
 }
+
+for(i in 1:100){
+    print(i)
+    c = getContigsAsIRanges(data,catalogue,20000,25000,1000,i)
+}
