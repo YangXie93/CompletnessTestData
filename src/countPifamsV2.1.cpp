@@ -216,12 +216,14 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
     }
     for(int i = 0; i < number; i++){
 
+        count = 0;
+        
         partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
         which = next(lengthSums.begin(),(generator() % lengthSums.size()));
-        count = 0;
-        if(i == 9963){
-            Rcout << partCovered << "\n";
+        if(i == 6501){
+            Rcout << partCovered << std::endl;
         }
+        
         while(((*which)* partCovered) < minContigLength && count < (int)lengthSums.size()){
             which++;
             count++;
@@ -233,11 +235,10 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
             Rcerr << "Die mindest Länge ist zu groß für den Datensatz" << std::endl;
             return res;
         }
+        
+        
         totLen = which;
         baseNrs.push_back((int) ((*totLen) *partCovered));
-        if(i == 9963){
-            Rcout << (*totLen) *partCovered << "\n";
-        }
         double contPart = ((cont[0] *100) + (generator() % ((int)(cont[1]*100) - (int)(cont[0] *100))))/100.0;
         if((*totLen) *contPart <= minContigLength){
             if(contPart != 0){
@@ -248,6 +249,7 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
             baseNrs.push_back((*totLen) *contPart);
         }
 
+        
         count = 0;
         which = next(lengthSums.begin(),(generator() % (int)lengthSums.size()));
         max = lengthSums.begin();
@@ -268,6 +270,8 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
             baseNrs.pop_back();
             baseNrs.push_back((*which) *0.9);
         }
+        
+        
         res.push_back(std::vector<int> (0));
         index = distance(lengthSums.begin(),which);
         indicies.push_back(distance(lengthSums.begin(),totLen));
@@ -280,15 +284,25 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
             accuContigs = 0;
             
             res.push_back(std::vector<int> (0));
-            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+3);
+            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed);
+            if(i == 6501){
+                Rcout << "fwhm:" << std::endl;
+                for(int p = 0;p < chromBaseNrs.size();p++){
+                    Rcout << chromBaseNrs[p] << " : " << (*next(lengths.begin(),indicies[n]))[p*2+1] << std::endl;
+                }
+                Rcout << std::endl << std::endl;
+            }
             nms = (*next(names.begin(),indicies[n])).begin();
             l = 0;
             for(j = 0; j < (int) chromBaseNrs.size();j++){
-                contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+i);
+                if(chromBaseNrs[j] == (*next(lengths.begin(),indicies[n]))[j]){
+                    Rcout << i << ": " << chromBaseNrs[j] << " index: " << indicies[n] << "\n";
+                }
+                contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
                 if( contigs.size() > 0 && contigs[0] != 0){
                     int contigSum = accumulate(contigs.begin(),contigs.end(),0);
                     accuContigs += contigSum;
-                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j *2+1] -contigSum,seed+1);
+                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j *2+1] -contigSum,seed);
                     co = contigs.begin();
                     sp = spaces.begin();
                     starts.reserve(contigs.size());
@@ -403,22 +417,27 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     std::vector<int>::iterator tms;
     bool swtch = false;
 
-    while(distance(con,contigs.end()) > 0){
-        // alle Werte
+    while(distance(con,contigs.end()) > 0){         // alle Werte
+        
         List tmp;
         swtch = false;
         GenNr = 1;
-        while((int)(*con).size() != 0 && distance(con,contigs.end()) > 0){
+        
+        while((int)(*con).size() != 0 && distance(con,contigs.end()) > 0){          // alle Genome
+            
             swtch = true;
-            // alle Genome
-            while((int) (*con).size() != 0 && distance(con,contigs.end()) > 0){
-                // alle Chromosomen
+            
+            while((int) (*con).size() != 0 && distance(con,contigs.end()) > 0){         // alle Chromosomen
+                
                 transfer = (*acc);
                 name.push_back(*((*con).begin()));
+                
                 if(transfer != (int)pifams.size()){
+                    
                     orfs = (*next(ORFs.begin(),transfer)).begin();
-                    for(pis = (*next(pifams.begin(),transfer)).begin();distance(pis,(*next(pifams.begin(),transfer)).end()) > 0;pis = next(pis,2)){
-                        // für alle 6 GENOME und ORF Werte
+                    
+                    for(pis = (*next(pifams.begin(),transfer)).begin();distance(pis,(*next(pifams.begin(),transfer)).end()) > 0;pis = next(pis,2)){     // für alle 6 GENOME und ORF Werte
+                        
                         starts = (*next(con)).begin();
                         ends = (*next(con,2)).begin();
                         width = (*pis).begin();
@@ -428,26 +447,37 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                         o = 0;
                         n = 0;
 
-                        for(starts = (*next(con)).begin();starts != (*next(con)).end();starts++){
-                            //für alle Length Werte in ORF
-                            while((*starts) > (o +(*orfWidths)) && orfWidths != (*orfs).end()){
+                        for(starts = (*next(con)).begin();starts != (*next(con)).end();starts++){       //für alle Contigs
+                            
+                            
+                            while((*starts) > (o +(*orfWidths)) && orfWidths != (*orfs).end()){         // weitersetzen des ORF intervalls bis es den Contig schneidet
                                 o += (*orfWidths);
                                 orfWidths++;
                                 orfValues++;
                             }
-                            while(o <  (*ends) &&  orfWidths != (*orfs).end()){
+                            
+                            while(o <  (*ends) &&  orfWidths != (*orfs).end()){         //weitersetzen des ORF intervalls solange es den Contig schneidet
+                                
                                 if((*orfValues) > 0){
+                                    
                                     fill(notInOrf.begin(),notInOrf.end(),true);
-                                    while(o > n+(*width) && width != (*pis).end()){
+                                   
+                                    while(o > n+(*width) && width != (*pis).end()){         //weitersetzen des pfam intervalls bis es den Contig schneidet
                                         n += (*width);
                                         width++;
                                         values++;
                                     }
-                                    while(n < (*ends) && width != (*pis).end()){
-                                        if((*values) > 0){
-                                            tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));
+                                    
+                                    while(n < (*ends) && width != (*pis).end()){         //weitersetzen des pfam intervalls solange es den Contig schneidet
+                                        
+                                        if((*values) > 0){                                                  //wenn nicht -1
+                                            tmp1 = intervallOverlap(n+1,n+(*width),(*starts),(*ends));      //schnitt berechnen
+                                            
+
+                                            //--------------------------------------------------- Werte eintragen ------------------------
                                             if(tmp1 > 0){
                                                 t = find(id.begin(),id.end(),(*values));
+                                                
                                                 if(t == id.end()){
                                                     baseNum.push_back(tmp1);
                                                     times.push_back(1);
@@ -465,7 +495,9 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                                     (*bN) += tmp1;
                                                 }
                                             }
+                                            //---------------------------------------------------------------------------------------------
                                         }
+                                        
                                         if((n + (*width)) < (*ends)){
                                             n += (*width);
                                             width++;
@@ -481,6 +513,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                         }
                                     }
                                 }
+                                
                                 if((o + (*orfWidths)) < (*ends) && orfWidths != (*orfs).end()){
                                     o += (*orfWidths);
                                     orfWidths++;
@@ -489,10 +522,12 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                                 else{
                                     break;
                                 }
+                                
                             }
                             ends++;
                         }
                         //end alle Length Werte aus ORF
+                        
                         o = 0;
                         n = 0;
                         orfs = next(orfs,2);
@@ -502,6 +537,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                 }
                 acc++;
                 con = next(con,3);
+                
             }
             //ende alle Chromosomen
             if(GenNr == 1){
@@ -541,10 +577,16 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
 //[[Rcpp::export]]
 
 List compTestData(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::list<std::vector<int> > &lengths,std::vector<int> &lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double> &comp,std::vector<double> &con,std::vector<std::vector<int> > &names,int seed = 0,std::string distr = "normal"){
-    std::vector<int> access;
-    std::vector<int> total;
-    std::vector<int> partial;
+    
+    
+    std::vector<int> access;        // indices zu den Daten in ORFs und pifams zu jedem erzeugten Beispiel in mkContigs
+    
+    std::vector<int> total;         // die lengthSums Werte zu jedem erzeugten beispiel in mkContigs
+    
+    std::vector<int> partial;       // die ContigSummen zu jedem erzeugtem Beispiel in mkContigs
+    
     std::vector<std::vector<int> > conts = mkContigs(lengths,lengthSums,total,partial,minContigLength,meanContigLength,number,comp,con,names,access,seed,distr);
+    
     return countPifams(pifams,ORFs,conts,access,total,partial);
 }
 

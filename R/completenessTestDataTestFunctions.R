@@ -145,7 +145,9 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     n = vector(mode = "integer")
     u = vector(mode = "integer")
     un = vector(mode = "integer")
-    c = CompletenessTestData::mkContigs(lengths,lengthSums,u,un,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed = seed)
+    c = CompletenessTestData::mkContigs(lengths,lengthSums,u,un,minContigLength,meanContigLength,number,c(0.6,1),c(0,0.4),accession,n,seed)
+    
+    
     cc = list()
     i = 1
     while(i <= length(c)){

@@ -1,6 +1,6 @@
 
 
-test = data[1:100]
+test = data
 
 ################################################## get all single copy pifams #################################################
 res = list()
@@ -157,7 +157,7 @@ for(i in 1:100){
 compInt = c(0.7,0.9)
 contInt = c(0.1,0.4)
 
-x = completenessTestData(data,catalogue,10000,15000,10000,seed = 2,comp = comtInt,cont = contInt)
+x = completenessTestData(data,cat,10000,15000,10000,seed = 2,comp = compInt,cont = contInt)
 
 for(i in 1:length(x)){
     if(x[[i]][[1]]$completness < compInt[1] || x[[i]][[1]]$completness > compInt[2]){
@@ -174,4 +174,13 @@ for(i in 1:length(x)){
     }
 }
 
+########################################## investigate genomes with many chromosomes  #####################################################
+max = 0
+
+for(i in 1:length(c)){
+    if(length(c[[i]][[1]]) > max){
+        which = i
+        max = length(c[[i]][[1]])
+    }
+}
 
