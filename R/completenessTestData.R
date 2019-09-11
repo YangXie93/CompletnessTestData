@@ -10,6 +10,8 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
     tmp1 = list()
     isUsed = c()
    
+    
+    
     n = 1
     for(i in 1:length(cat$comb)){
         if(!(cat$comb[i] %in% isUsed)){
@@ -18,7 +20,6 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
             n = n+1
         }
     }
-    
     lengths = list()
     lengthSums = c()
     accession = list()
@@ -32,7 +33,7 @@ completenessTestData <- function(data,catalogue,minContigLength,meanContigLength
             tmp5[j] = which(IDs == tmp1[[i]][j]) -1
             tmp2[n] = as.numeric(tmp1[[i]][j])
             tmp2[n+1] = sum(data[[tmp1[[i]][j]]]$GENOME[[1]]@lengths)
-            lengthSums[i] = lengthSums[i] + tmp2[length(tmp2)]
+            lengthSums[i] = lengthSums[i] + tmp2[n+1]
             n = n +2
         }
         lengths[[i]] = tmp2

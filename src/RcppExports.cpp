@@ -43,13 +43,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // mkContigs
-std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths, std::vector<int>& lengthSums, int minContigLength, int meanContigLength, int number, std::vector<double>& comp, std::vector<double>& cont, std::vector<std::vector<int> >& names, std::vector<int>& access, int seed, std::string distr);
-RcppExport SEXP _CompletenessTestData_mkContigs(SEXP lengthsSEXP, SEXP lengthSumsSEXP, SEXP minContigLengthSEXP, SEXP meanContigLengthSEXP, SEXP numberSEXP, SEXP compSEXP, SEXP contSEXP, SEXP namesSEXP, SEXP accessSEXP, SEXP seedSEXP, SEXP distrSEXP) {
+std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths, std::vector<int>& lengthSums, std::vector<int>& total, std::vector<int>& partial, int minContigLength, int meanContigLength, int number, std::vector<double>& comp, std::vector<double>& cont, std::vector<std::vector<int> >& names, std::vector<int>& access, int seed, std::string distr);
+RcppExport SEXP _CompletenessTestData_mkContigs(SEXP lengthsSEXP, SEXP lengthSumsSEXP, SEXP totalSEXP, SEXP partialSEXP, SEXP minContigLengthSEXP, SEXP meanContigLengthSEXP, SEXP numberSEXP, SEXP compSEXP, SEXP contSEXP, SEXP namesSEXP, SEXP accessSEXP, SEXP seedSEXP, SEXP distrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::list<std::vector<int> >& >::type lengths(lengthsSEXP);
     Rcpp::traits::input_parameter< std::vector<int>& >::type lengthSums(lengthSumsSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type total(totalSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type partial(partialSEXP);
     Rcpp::traits::input_parameter< int >::type minContigLength(minContigLengthSEXP);
     Rcpp::traits::input_parameter< int >::type meanContigLength(meanContigLengthSEXP);
     Rcpp::traits::input_parameter< int >::type number(numberSEXP);
@@ -59,13 +61,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<int>& >::type access(accessSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< std::string >::type distr(distrSEXP);
-    rcpp_result_gen = Rcpp::wrap(mkContigs(lengths, lengthSums, minContigLength, meanContigLength, number, comp, cont, names, access, seed, distr));
+    rcpp_result_gen = Rcpp::wrap(mkContigs(lengths, lengthSums, total, partial, minContigLength, meanContigLength, number, comp, cont, names, access, seed, distr));
     return rcpp_result_gen;
 END_RCPP
 }
 // countPifams
-List countPifams(std::list<std::list<std::vector<int> > >& pifams, std::list<std::list<std::vector<int> > >& ORFs, std::vector<std::vector<int> >& contigs, std::vector<int>& names);
-RcppExport SEXP _CompletenessTestData_countPifams(SEXP pifamsSEXP, SEXP ORFsSEXP, SEXP contigsSEXP, SEXP namesSEXP) {
+List countPifams(std::list<std::list<std::vector<int> > >& pifams, std::list<std::list<std::vector<int> > >& ORFs, std::vector<std::vector<int> >& contigs, std::vector<int>& names, std::vector<int>& total, std::vector<int>& partial);
+RcppExport SEXP _CompletenessTestData_countPifams(SEXP pifamsSEXP, SEXP ORFsSEXP, SEXP contigsSEXP, SEXP namesSEXP, SEXP totalSEXP, SEXP partialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -73,7 +75,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::list<std::list<std::vector<int> > >& >::type ORFs(ORFsSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<int> >& >::type contigs(contigsSEXP);
     Rcpp::traits::input_parameter< std::vector<int>& >::type names(namesSEXP);
-    rcpp_result_gen = Rcpp::wrap(countPifams(pifams, ORFs, contigs, names));
+    Rcpp::traits::input_parameter< std::vector<int>& >::type total(totalSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type partial(partialSEXP);
+    rcpp_result_gen = Rcpp::wrap(countPifams(pifams, ORFs, contigs, names, total, partial));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -129,8 +133,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_CompletenessTestData_return10", (DL_FUNC) &_CompletenessTestData_return10, 0},
     {"_CompletenessTestData_chooseGenomes", (DL_FUNC) &_CompletenessTestData_chooseGenomes, 4},
     {"_CompletenessTestData_randomSpaces", (DL_FUNC) &_CompletenessTestData_randomSpaces, 3},
-    {"_CompletenessTestData_mkContigs", (DL_FUNC) &_CompletenessTestData_mkContigs, 11},
-    {"_CompletenessTestData_countPifams", (DL_FUNC) &_CompletenessTestData_countPifams, 4},
+    {"_CompletenessTestData_mkContigs", (DL_FUNC) &_CompletenessTestData_mkContigs, 13},
+    {"_CompletenessTestData_countPifams", (DL_FUNC) &_CompletenessTestData_countPifams, 6},
     {"_CompletenessTestData_compTestData", (DL_FUNC) &_CompletenessTestData_compTestData, 12},
     {"_CompletenessTestData_chooseGenomesCpp", (DL_FUNC) &_CompletenessTestData_chooseGenomesCpp, 4},
     {"_CompletenessTestData_testDefaultRandomEngine", (DL_FUNC) &_CompletenessTestData_testDefaultRandomEngine, 1},

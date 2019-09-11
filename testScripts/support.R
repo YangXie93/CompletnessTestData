@@ -2,7 +2,7 @@
 
 test = data[1:100]
 
-
+################################################## get all single copy pifams #################################################
 res = list()
 swtch = FALSE
 nms = c()
@@ -44,7 +44,7 @@ for(i in 1:length(test)){
 }
 names(res) = nms
 
-
+###########################################################################################################################
 
 
 chromIDs = c()
@@ -138,7 +138,7 @@ for(i in 1:length(x[[1]][[1]]$compBaseCount)){
 for(i in 1:length(c)){
     for(j in 1:length(c[[i]])){
         for(n in 1:length(c[[i]][[j]])){
-            if(length(c[[i]][[j]][[n]]) <= 1){
+            for(x in 1:length(c[[i]][[j]][[n]])){
                 print(i)
             }
         }
@@ -147,5 +147,31 @@ for(i in 1:length(c)){
 
 for(i in 1:100){
     print(i)
-    c = getContigsAsIRanges(data,catalogue,20000,25000,1000,i)
+    c = getContigsAsIRanges(data,catalogue,10000,15000,44,1)
 }
+
+
+
+############################################ see weather any completeness or contamination is not in intervall #########################################
+
+compInt = c(0.7,0.9)
+contInt = c(0.1,0.4)
+
+x = completenessTestData(data,catalogue,10000,15000,10000,seed = 2,comp = comtInt,cont = contInt)
+
+for(i in 1:length(x)){
+    if(x[[i]][[1]]$completness < compInt[1] || x[[i]][[1]]$completness > compInt[2]){
+        print("completeness: ")
+        print(i)
+        print(x[[i]][[1]]$completness)
+    }
+    if(length(x[[i]]) > 1){
+        if(x[[i]][[2]]$contamination > contInt[2] ||x[[i]][[2]]$contamination < contInt[1] ){
+            print("contamination:")
+            print(i)
+            print(x[[i]][[2]]$contamination)
+        }
+    }
+}
+
+

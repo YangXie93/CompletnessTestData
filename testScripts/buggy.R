@@ -1,9 +1,9 @@
 rm(list = ls())
-Rcpp::sourceCpp('src/countPifamsV2.1.cpp')
-source('~/CompletnessTestData/R/completenessTestData.R')
-data = readRDS("~/Daten/data.Rds")
-catalogue = readRDS("~/Daten/bac_dt.Rds")$DD
+library(CompletenessTestData)
+library(IRanges)
+data = readRDS("~/Daten/data_red.Rds")
+cat = readRDS("~/Daten/bac_dt.Rds")$DD
 
-for(i in 1:100){
-    x = completenessTestData(data,catalogue,10000,25000,10000,seed = i)
-}
+
+x = completenessTestData(data,cat,10000,15000,44,seed =1)
+print(x[[44]])

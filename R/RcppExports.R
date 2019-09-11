@@ -15,13 +15,13 @@ randomSpaces <- function(numSp, free, seed) {
 }
 
 #' @export
-mkContigs <- function(lengths, lengthSums, minContigLength, meanContigLength, number, comp, cont, names, access, seed = 0L, distr = "normal") {
-    .Call('_CompletenessTestData_mkContigs', PACKAGE = 'CompletenessTestData', lengths, lengthSums, minContigLength, meanContigLength, number, comp, cont, names, access, seed, distr)
+mkContigs <- function(lengths, lengthSums, total, partial, minContigLength, meanContigLength, number, comp, cont, names, access, seed = 0L, distr = "normal") {
+    .Call('_CompletenessTestData_mkContigs', PACKAGE = 'CompletenessTestData', lengths, lengthSums, total, partial, minContigLength, meanContigLength, number, comp, cont, names, access, seed, distr)
 }
 
 #' @export
-countPifams <- function(pifams, ORFs, contigs, names) {
-    .Call('_CompletenessTestData_countPifams', PACKAGE = 'CompletenessTestData', pifams, ORFs, contigs, names)
+countPifams <- function(pifams, ORFs, contigs, names, total, partial) {
+    .Call('_CompletenessTestData_countPifams', PACKAGE = 'CompletenessTestData', pifams, ORFs, contigs, names, total, partial)
 }
 
 compTestData <- function(pifams, ORFs, lengths, lengthSums, minContigLength, meanContigLength, number, comp, con, names, seed = 0L, distr = "normal") {

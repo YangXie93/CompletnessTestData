@@ -34,8 +34,6 @@ std::vector<int> randomContigs(int minContigLength,int meanContigLength,int cove
     std::uniform_int_distribution<int> uniformDist(minContigLength,meanContigLength*2);
     std::vector<int> res;
     int tmp = 0;
-    int mean = 0;
-    int isSmalerZero = 0;
     while(covering > 0){
         if(distr == "poisson" || distr == "normal" || distr == "exponential" || distr == "uniform"){
             if(distr == "poisson"){
@@ -49,9 +47,6 @@ std::vector<int> randomContigs(int minContigLength,int meanContigLength,int cove
             if(distr == "exponential"){
 
                 tmp = minContigLength + (expDist(generator));
-                if(tmp > minContigLength){
-                    isSmalerZero++;
-                }
                 expDist.reset();
             }
             if(distr == "uniform"){
@@ -66,13 +61,15 @@ std::vector<int> randomContigs(int minContigLength,int meanContigLength,int cove
             normDist.reset();
         }
         if(tmp >= covering){
+            if(covering >= minContigLength){
+                res.push_back(covering);
+            }
             covering = 0;
         }
         else{
             if(tmp > 0){
                 covering -= tmp;
                 res.push_back(tmp);
-                mean += tmp;
             }
         }
     }
@@ -87,10 +84,10 @@ std::vector<int> randomSpaces(int numSp,int free,int seed){
     }
     std::vector<int > spaces;
     spaces.reserve(numSp);
-    
+
     std::default_random_engine generator;
     generator.seed(seed);
-    
+
     std::vector<int> t;
     t.reserve(numSp);
     double sum = 0.0;
@@ -98,13 +95,13 @@ std::vector<int> randomSpaces(int numSp,int free,int seed){
     int i;
     int sum2 = 0;
     int* elem = t.data();
-    
+
     for(i = 0;i < numSp;i++){
         flex = generator() % 10000;
         t.push_back(flex);
         sum += flex;
     }
-    
+
     for(i = 0;i < numSp;i++){
         *(elem +i) =  (int)(free*(*(elem +i)/sum));
         sum2 += *(elem +i);
@@ -162,31 +159,13 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         j++;
     }
     if(tmp1.size() > 0){
-        int orientation = tmp1.size();
-        for(int i = 0; i < orientation;i++){
-            if(needed > 0){
-                int x = (generator() % (tmp1.size()));
-                std::vector<int>::iterator it = next(tmp1.begin(),x);
-                std::vector<int>::iterator acc = next(accession.begin(),x);
-                share = round(needed *((*it)/(double)totalLength));
-                std::poisson_distribution<int> distribution(share);
-                tmp = distribution(generator);
-                if(tmp > (*it)){
-                    tmp -= tmp %(*it);
-                }
-                if(tmp >= minContigLength){
-                    needed -= tmp;
-                    totalLength -= (*it);
-                    res[(*acc)] = tmp;
-                }
-                else{
-                    needed -= minContigLength;
-                    totalLength -= (*it);
-                    res[(*acc)] = minContigLength;
-                }
-                tmp1.erase(it);
-                accession.erase(acc);
-            }
+        std::vector<unsigned int> tmp2;
+        for(int i =0; i < tmp1.size();i++){
+            tmp2.push_back(tmp1[i] *(generator()% 100));
+        }
+        unsigned int ges = accumulate(tmp2.begin(),tmp2.end(),0);
+        for(int i = 0;i < tmp2.size();i++ ){
+            res[accession[i]] = needed *(tmp2[i]/(double) ges);
         }
     }
     return res;
@@ -194,8 +173,8 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
 
 //' @export
 //[[Rcpp::export]]
-std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,std::vector<std::vector<int> >& names,std::vector<int>& access,int seed = 0,std::string distr = "normal"){
-    
+std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,std::vector<int>& lengthSums,std::vector<int>& total,std::vector<int>& partial,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,std::vector<std::vector<int> >& names,std::vector<int>& access,int seed = 0,std::string distr = "normal"){
+
     std::default_random_engine generator;
     generator.seed(seed);
 
@@ -213,7 +192,7 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
     std::vector<int> ends;
     std::vector<int> chromBaseNrs;
     std::vector<int>::iterator nms;
-    
+
     int at = 0;
     double partCovered;
     std::vector<int>::iterator which;
@@ -224,7 +203,8 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
     int n;
     int j;
     int count;
-    
+    int accuContigs;
+
     if(cont[1] > comp[0]){
         cont[1] = comp[0];
     }
@@ -235,10 +215,13 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         comp[0] = comp[1] -0.01;
     }
     for(int i = 0; i < number; i++){
-        
+
         partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
         which = next(lengthSums.begin(),(generator() % lengthSums.size()));
         count = 0;
+        if(i == 9963){
+            Rcout << partCovered << "\n";
+        }
         while(((*which)* partCovered) < minContigLength && count < (int)lengthSums.size()){
             which++;
             count++;
@@ -252,6 +235,9 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         }
         totLen = which;
         baseNrs.push_back((int) ((*totLen) *partCovered));
+        if(i == 9963){
+            Rcout << (*totLen) *partCovered << "\n";
+        }
         double contPart = ((cont[0] *100) + (generator() % ((int)(cont[1]*100) - (int)(cont[0] *100))))/100.0;
         if((*totLen) *contPart <= minContigLength){
             if(contPart != 0){
@@ -261,7 +247,7 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         else{
             baseNrs.push_back((*totLen) *contPart);
         }
-        
+
         count = 0;
         which = next(lengthSums.begin(),(generator() % (int)lengthSums.size()));
         max = lengthSums.begin();
@@ -286,21 +272,29 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
         index = distance(lengthSums.begin(),which);
         indicies.push_back(distance(lengthSums.begin(),totLen));
         indicies.push_back(index);
+        
+        total.push_back((*totLen));
+        
         for(n = 0; n < (int) baseNrs.size();n++){
+            
+            accuContigs = 0;
+            
             res.push_back(std::vector<int> (0));
             chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+3);
             nms = (*next(names.begin(),indicies[n])).begin();
             l = 0;
-            for(j = 1; j < (int) (*next(lengths.begin(),indicies[n])).size();j += 2){
-                contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[l],distr,seed+2);
-                if( contigs.size() > 1 && contigs[1] != 0){
+            for(j = 0; j < (int) chromBaseNrs.size();j++){
+                contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+i);
+                if( contigs.size() > 0 && contigs[0] != 0){
                     int contigSum = accumulate(contigs.begin(),contigs.end(),0);
-                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -contigSum,seed+1);
+                    accuContigs += contigSum;
+                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j *2+1] -contigSum,seed+1);
                     co = contigs.begin();
                     sp = spaces.begin();
                     starts.reserve(contigs.size());
                     ends.reserve(contigs.size());
                     swtch = true;
+                    at = 0;
                     for(int m = 0;m < (int)contigs.size();m++){
                             at += (*sp);
                             if(swtch){
@@ -321,18 +315,17 @@ std::vector<std::vector<int> > mkContigs(std::list<std::vector<int> >& lengths,s
                     if(ends.size() == 0 || (*sp) == 0){
                         ends.push_back(at);
                     }
-    
-                    at = 0;
-                    res.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j -1]});
+
+                    res.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j *2]});
                     res.push_back(starts);
                     res.push_back(ends);
                     
                     access.push_back(*next(nms,l));
                     starts.clear();
                     ends.clear();
-                    l++;
                 }
             }
+            partial.push_back(accuContigs);
         }
         baseNrs.clear();
         indicies.clear();
@@ -369,9 +362,9 @@ int intervallOverlap(int start1, int end1,int start2,int end2){
 //' @export
 //[[Rcpp::export]]
 
-List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::vector<std::vector<int> > &contigs,std::vector<int> &names){
-    
-    
+List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::vector<std::vector<int> > &contigs,std::vector<int> &names,std::vector<int> &total,std::vector<int>& partial){
+
+
     List res;
     std::vector<int> id;
     std::vector<int> times;
@@ -381,14 +374,11 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     std::vector<double> completeness;
     std::vector<double> contamination;
     std::vector<int>::iterator acc = names.begin();
-    
+    std::vector<int>::iterator tot = total.begin();
+    std::vector<int>::iterator part = partial.begin();
+
     long o = 0;
     long n = 0;
-    long x = 0;
-    int zwsch = 0;
-    int total = 0;
-    int partial = 0;
-    int contTotal = 0;
     int transfer;
     int GenNr;
 
@@ -412,7 +402,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
     std::vector<bool>::iterator nio;
     std::vector<int>::iterator tms;
     bool swtch = false;
-    
+
     while(distance(con,contigs.end()) > 0){
         // alle Werte
         List tmp;
@@ -437,11 +427,9 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                         orfValues = (*next(orfs)).begin();
                         o = 0;
                         n = 0;
-                        x = 0;
-                        
+
                         for(starts = (*next(con)).begin();starts != (*next(con)).end();starts++){
                             //für alle Length Werte in ORF
-                            x += (*ends) - (*starts) +1;
                             while((*starts) > (o +(*orfWidths)) && orfWidths != (*orfs).end()){
                                 o += (*orfWidths);
                                 orfWidths++;
@@ -505,37 +493,19 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                             ends++;
                         }
                         //end alle Length Werte aus ORF
-                        if(GenNr == 1 && pis == (*next(pifams.begin(),transfer)).begin()){
-                            total += o;
-                            while(distance(orfWidths,(*orfs).end()) > 0){
-                                total += (*orfWidths);
-                                orfWidths++;
-                            }
-                        }
-                        if(x > zwsch){
-                            zwsch = x;
-                        }
                         o = 0;
                         n = 0;
-                        x = 0;
                         orfs = next(orfs,2);
                     }
                     //ende alle 6 GENOME und ORF Werte
-                    if(GenNr == 1){
-                        partial += zwsch;
-                    }
-                    else{
-                        contTotal += zwsch;
-                    }
-                    zwsch = 0;
-                    
+
                 }
                 acc++;
                 con = next(con,3);
             }
             //ende alle Chromosomen
             if(GenNr == 1){
-                completeness = {partial/(double) total};
+                completeness = {(*part)/(double) (*tot)};
                 tmp.push_back(List::create(Named("compChromID") = name,Named("compPifamNames") = id,Named("compPifamCount") = times,Named("compBaseCount") = baseNum,Named("completness") = completeness));
                 name.clear();
                 id.clear();
@@ -544,7 +514,7 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                 notInOrf.clear();
             }
             else{
-                contamination = {(contTotal/(double)total)};
+                contamination = {(*part)/(double)(*tot)};
                 tmp.push_back(List::create(Named("contChromID") = name,Named("contPifamNames") = id,Named("contPifamCount") = times,Named("contBaseCount") = baseNum,Named("contamination") = contamination));
                 name.clear();
                 id.clear();
@@ -552,19 +522,18 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
                 times.clear();
                 notInOrf.clear();
             }
-            partial = 0;
-            contTotal = 0;
             con++;
             GenNr++;
+            part++;
         }
-        total = 0;
         //ende alle Genome
         if(swtch){
             res.push_back(tmp);
+            tot++;
         }
         con++;
     }
-    
+
     return res;
 }
 
@@ -573,25 +542,27 @@ List countPifams(std::list<std::list<std::vector<int> > > &pifams,std::list<std:
 
 List compTestData(std::list<std::list<std::vector<int> > > &pifams,std::list<std::list<std::vector<int> > > &ORFs,std::list<std::vector<int> > &lengths,std::vector<int> &lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double> &comp,std::vector<double> &con,std::vector<std::vector<int> > &names,int seed = 0,std::string distr = "normal"){
     std::vector<int> access;
-    std::vector<std::vector<int> > conts = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,comp,con,names,access,seed,distr);
-    return countPifams(pifams,ORFs,conts,access);
+    std::vector<int> total;
+    std::vector<int> partial;
+    std::vector<std::vector<int> > conts = mkContigs(lengths,lengthSums,total,partial,minContigLength,meanContigLength,number,comp,con,names,access,seed,distr);
+    return countPifams(pifams,ORFs,conts,access,total,partial);
 }
 
 
 //' @export
 //[[Rcpp::export]]
 std::vector<int> chooseGenomesCpp(std::vector<int> lengthSums,int minContigLength,int seed = 1,int times = 100){
-    
+
     std::vector<int> res;
     std::default_random_engine generator;
     generator.seed(seed);
     std::vector<double> comp = {0.6,1};
     for(int i = 0;i < times;i++){
-        
+
         int partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
         std::vector<int>::iterator which = next(lengthSums.begin(),(generator() % lengthSums.size()));
         int count = 0;
-        
+
         while(((*which)* partCovered) < minContigLength && count < (int)lengthSums.size()){
             which++;
             count++;
@@ -599,10 +570,10 @@ std::vector<int> chooseGenomesCpp(std::vector<int> lengthSums,int minContigLengt
                 which = lengthSums.begin();
             }
         }
-        
+
         res.push_back((distance(lengthSums.begin(),which) +1));
     }
-    
+
     return res;
 }
 
@@ -614,6 +585,3 @@ int testDefaultRandomEngine(int seed){
     generator.seed(seed);
     return generator();
 }
-
-
-
