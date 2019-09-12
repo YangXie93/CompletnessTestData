@@ -97,7 +97,8 @@ for(i in 1:100){
     }
 }
 
-
+total = c()
+partial = c()
 conts = list()
 for(i in 1:length(data)){
     conts[[length(conts)+1]] = vector(mode = "integer")
@@ -105,11 +106,13 @@ for(i in 1:length(data)){
     conts[[length(conts)+1]] = as.integer(names(data)[i])
     conts[[length(conts)+1]] = c(1)
     conts[[length(conts)+1]] = c(sum(data[[i]]$GENOME[[1]]@lengths))
+    total[i] = c(sum(data[[i]]$GENOME[[1]]@lengths))
+    partial[i] = c(sum(data[[i]]$GENOME[[1]]@lengths))
 }
 
 acc = c(0:(length(data)-1))
 
-x = countPifams(pifams,Orfs,conts,acc)
+x = countPifams(pifams,Orfs,conts,acc,total,partial)
 
 unq = list()
 for(i in 1:length(data[[1]]$GENOME)){
@@ -181,6 +184,15 @@ for(i in 1:length(c)){
     if(length(c[[i]][[1]]) > max){
         which = i
         max = length(c[[i]][[1]])
+    }
+}
+
+########################################## find in res ################################
+name = 331703020
+
+for(i in 1:length(x)){
+    if(x[[i]][[1]]$compChromID == name){
+        print(i)
     }
 }
 

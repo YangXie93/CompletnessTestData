@@ -147,6 +147,7 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     tmp1.reserve(lengths.size()/2);
     accession.reserve(lengths.size()/2);
     int j = 0;
+    
     for(int i = 1;i < (int) lengths.size();i+= 2){
         res.push_back(0);
         if(lengths[i] >= minContigLength){
@@ -158,8 +159,10 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         }
         j++;
     }
+    
     if(tmp1.size() > 0){
         std::vector<unsigned int> tmp2;
+        
         for(int i =0; i < tmp1.size();i++){
             tmp2.push_back(tmp1[i] *(generator()% 100));
         }
@@ -168,8 +171,11 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
             res[accession[i]] = needed *(tmp2[i]/(double) ges);
         }
     }
+    
     return res;
 }
+
+
 
 //' @export
 //[[Rcpp::export]]
