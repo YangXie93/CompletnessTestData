@@ -123,3 +123,45 @@ baseCount = sapply(1:length(pfamName), function(x) sum(width(overlaps[names(pfam
 
 pfamCount = sapply(1:length(pfamName), function(x) length(unique(this$ORF[this$pfam == pfamName[x]])))
 
+
+
+
+
+#################### format data ###############
+
+data = readRDS("~/work/Data/dataSmall.Rds")
+
+
+res = list()
+for(i in 1:length(data)){
+    tmp1 = data.table::data.table()
+    pfam = data[[i]]$GENOME
+    orf = data[[i]]$ORF
+    for(j in 1:length(data[[i]]$GENOME)){
+        starts = sapply(1:length(pfam[[j]]@lengths),function(x) sum(pfam[[j]]@lengths[1:x]) - pfam[[j]]@lengths[x])
+        ends = sapply(1:length(pfam[[j]]@lengths),function(x) sum(pfam[[j]]@lengths[1:x]))
+        pfams = pfam[[j]]@values
+        orfStarts =  sapply(1:length(orf[[j]]@lengths),function(x) sum(orf[[j]]@lengths[1:x]) - orf[[j]]@lengths[x])
+        orfEnds = sapply(1:length(orf[[j]]@lengths),function(x) sum(orf[[j]]@lengths[1:x]))
+        ORF = orf[[j]]@values
+        pRange = IRanges(start = starts,end = ends,names = pfams)
+        oRange = IRanges(start = orfStarts,end = orfEnds,names = ORF)
+        
+        pRange = subset(pRange,names > 0)
+        oRange = subset(oRange,names > 0)
+        
+        tr = findOverlaps(oRange,pRange)
+        ORF = names(oRange)[queryHits(tr)]
+        tmp = data.table::data.table(start = start(pRange),end = end(pRange),pfam = names(pRange),ORF = ORF)
+        if(length(tmp1) == 0){
+            tmp1 = tmp
+        }
+        else{
+            tmp1 = rbind(tmp1,tmp)
+        }
+    }
+    res[[i]] = tmp1
+}
+names(res) = names(data)
+
+
