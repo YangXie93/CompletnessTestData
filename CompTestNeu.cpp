@@ -132,27 +132,33 @@ std::vector<int> randomSpaces(int numSp,int free,int seed){
     return spaces;
 }
 
+int whichToSmall;
 
-
-
+//[[Rcpp::export]]
 std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vector<int> lengths,int needed,int seed){
+    
     std::default_random_engine generator;
     generator.seed(seed);
-    std::vector<int> res;
-    res.reserve(lengths.size()/2);
+    std::vector<int> res (lengths.size(),0);
     int share;
+    int at;
     int tmp;
+    int ges;
+    int min;
+    int relMin;
+    
     std::vector<int> tmp1;
     std::vector<int> accession;
-    tmp1.reserve(lengths.size()/2);
-    accession.reserve(lengths.size()/2);
-    int j = 0;
+    std::vector<int> acc;
     
-    for(int i = 1;i < (int) lengths.size();i+= 2){
-        res.push_back(0);
-        if(lengths[i] >= minContigLength){
+    int j = 0;
+    int n = 0;
+    for(int i = 0;i < (int) lengths.size();i++){
+        if(lengths[i] > minContigLength){
             tmp1.push_back(lengths[i]);
             accession.push_back(j);
+            acc.push_back(n);
+            n++;
         }
         else{
             totalLength -= lengths[i];
@@ -161,17 +167,34 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     }
     
     if(tmp1.size() > 0){
-        std::vector<unsigned int> tmp2;
         
-        for(int i =0; i < tmp1.size();i++){
-            tmp2.push_back(tmp1[i] *(generator()% 100));
+        std::vector<int> tmp2;
+        
+        for(int i = 0;i < tmp1.size();i++){
+            relMin = (int) round(((needed/(double)totalLength) * (tmp1[i]/(double)totalLength)) *totalLength);
+            min = (int) round(((minContigLength)/(double) (needed - minContigLength)) *(totalLength-tmp1[i]));
+            if(min < tmp1[i]){
+                if(relMin > min){
+                    tmp2.push_back(relMin + (generator() % (tmp1[i] - relMin) ));
+                }
+                else{
+                    tmp2.push_back(min + (generator() % (tmp1[i] - min)));
+                }
+            }
+            else{
+                tmp2.push_back(0);
+            }
         }
-        unsigned int ges = accumulate(tmp2.begin(),tmp2.end(),0);
-        for(int i = 0;i < tmp2.size();i++ ){
-            res[accession[i]] = needed *(tmp2[i]/(double) ges);
+        ges = accumulate(tmp2.begin(),tmp2.end(),0);
+        for(int i = 0;i < tmp2.size();i++){
+            res[accession[i]] = (int) (needed* (tmp2[i]/(double)ges));
+            // if(res[accession[i]] < minContigLength){
+            //     Rcout << whichToSmall << ": kleiner als minContigLength \n";
+            //     Rcout << needed << " " << tmp2[i]<< " " << ges << " " << res[accession[i]] << " " << tmp1[i] << std::endl;
+            // }
         }
+        
     }
-    
     return res;
 }
 
@@ -179,15 +202,12 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
 
 //' @export
 //[[Rcpp::export]]
-std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::vector<int> >& lengths,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,int seed = 0,std::string distr = "normal"){
-    
+std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::vector<int> >& lengths,std::list<std::vector<int> > &IDs,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,int seed = 0,std::string distr = "normal"){
+    whichToSmall = 0;
     std::default_random_engine generator;
     generator.seed(seed);
     
     std::list<std::list<std::list<std::vector<int> > > > res;
-    std::list<std::list<std::vector<int> > > r;
-    std::list<std::vector<int> > re;
-    
     std::vector<int>::iterator totLen;
     std::vector<int> baseNrs;
     std::vector<int> indicies;
@@ -198,11 +218,10 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
     std::vector<int> starts;
     std::vector<int> ends;
     std::vector<int> chromBaseNrs;
-    
-    int at = 0;
-    double partCovered;
     std::vector<int>::iterator which;
     std::vector<int>::iterator max;
+    
+    
     bool swtch;
     int index;
     int l;
@@ -210,6 +229,13 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
     int j;
     int count;
     int accuContigs;
+    int at = 0;
+    int contigSum;
+    double partCovered;
+    bool contIsNull;
+    bool justZero = false;
+    
+    //--------- Prüfen von comp und cont ---------------
     
     if(cont[1] > comp[0]){
         cont[1] = comp[0];
@@ -220,9 +246,16 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
     if(comp[0] == comp[1]){
         comp[0] = comp[1] -0.01;
     }
+    
+    //--------------------------------------------------
+    
     for(int i = 0; i < number; i++){
         
+        whichToSmall++;
         count = 0;
+        contIsNull = false;
+        
+        //------------------------ Aussuchen des bin angebenden Genoms und der completness ----------------------
         
         partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
         which = next(lengthSums.begin(),(generator() % lengthSums.size()));
@@ -234,103 +267,125 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 which = lengthSums.begin();
             }
         }
+        
         if(count == (int)lengthSums.size() && (*which) < minContigLength){
             Rcerr << "Die mindest Länge ist zu groß für den Datensatz" << std::endl;
             return res;
         }
-        
-        
         totLen = which;
         baseNrs.push_back((int) ((*totLen) *partCovered));
+        
+        //-------------------------------------------------------------------------------------------------------
+        
+        //------------------------- Aussuchen des genoms zur contamination --------------------------------------
+        
         double contPart = ((cont[0] *100) + (generator() % ((int)(cont[1]*100) - (int)(cont[0] *100))))/100.0;
         if((*totLen) *contPart <= minContigLength){
             if(contPart != 0){
                 baseNrs.push_back(minContigLength);
+            }
+            else{
+                contIsNull = true;
             }
         }
         else{
             baseNrs.push_back((*totLen) *contPart);
         }
         
-        
-        count = 0;
-        which = next(lengthSums.begin(),(generator() % (int)lengthSums.size()));
-        max = lengthSums.begin();
-        while(((*which) < *prev(baseNrs.end()) && count < (int)lengthSums.size()) || which == totLen){
-            if(which == lengthSums.end()){
-                which = lengthSums.begin();
-            }
-            else{
-                if(which > max && which != totLen){
-                    max = which;
+        if(!contIsNull){
+            count = 0;
+            which = next(lengthSums.begin(),(generator() % (int)lengthSums.size()));
+            max = lengthSums.begin();
+            while(((*which) < *prev(baseNrs.end()) && count < (int)lengthSums.size()) || which == totLen){
+                if(which == lengthSums.end()){
+                    which = lengthSums.begin();
                 }
-                which++;
-                count++;
+                else{
+                    if(which > max && which != totLen){
+                        max = which;
+                    }
+                    which++;
+                    count++;
+                }
+            }
+            if(((*which) < *prev(baseNrs.end()) && count == (int)lengthSums.size()) || which == lengthSums.end() || which == totLen){
+                baseNrs.pop_back();
             }
         }
-        if(((*which) < *prev(baseNrs.end()) && count == (int)lengthSums.size()) || which == lengthSums.end() || which == totLen){
-            baseNrs.pop_back();
-        }
         
+        //--------------------------------------------------------------------------------------------------------
         
         index = distance(lengthSums.begin(),which);
         indicies.push_back(distance(lengthSums.begin(),totLen));
         indicies.push_back(index);
         
-        for(n = 0; n < (int) baseNrs.size();n++){
+        std::list<std::list<std::vector<int> > > r;
+        for(n = 0; n < (int) baseNrs.size();n++){       // für completeness und contamination 
             
+            std::list<std::vector<int> > re;
             accuContigs = 0;
-            
-            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed);
-            l = 0;
-            for(j = 0; j < (int) chromBaseNrs.size();j++){
-                contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
-                if( contigs.size() > 0 && contigs[0] != 0){
-                    int contigSum = accumulate(contigs.begin(),contigs.end(),0);
-                    accuContigs += contigSum;
-                    spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j *2+1] -contigSum,seed);
-                    co = contigs.begin();
-                    sp = spaces.begin();
-                    starts.reserve(contigs.size());
-                    ends.reserve(contigs.size());
-                    swtch = true;
-                    at = 0;
-                    for(int m = 0;m < (int)contigs.size();m++){
+            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i);
+            justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
+            if(!justZero){    
+                l = 0;
+                for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
+                    
+                    contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
+                    if( contigs.size() > 0 && contigs[0] != 0){
+                        
+                        contigSum = accumulate(contigs.begin(),contigs.end(),0);
+                        
+                        spaces = randomSpaces((int)contigs.size() +1,(*next(lengths.begin(),indicies[n]))[j] -contigSum,seed);
+                        co = contigs.begin();
+                        sp = spaces.begin();
+                        starts.reserve(contigs.size());
+                        ends.reserve(contigs.size());
+                        
+                        swtch = true;
+                        at = 0;
+                        for(int m = 0;m < (int)contigs.size();m++){     // für alle Contigs
+                            at += (*sp);
+                            if(swtch){
+                                starts.push_back(at+1);
+                            }
+                            at += (*co);
+                            sp++;
+                            co++;
+                            if((*sp) > 0){
+                                ends.push_back(at);
+                                swtch = true;
+                            }
+                            else{
+                                swtch = false;
+                            }
+                        }           // ende alle Contigs
+                        
                         at += (*sp);
-                        if(swtch){
-                            starts.push_back(at+1);
-                        }
-                        at += (*co);
-                        sp++;
-                        co++;
-                        if((*sp) > 0){
+                        if(ends.size() == 0 || (*sp) == 0){
                             ends.push_back(at);
-                            swtch = true;
                         }
-                        else{
-                            swtch = false;
-                        }
+                        
+                        re.push_back(std::vector<int> {(*next(IDs.begin(),indicies[n]))[j]});
+                        re.push_back(starts);
+                        re.push_back(ends);
+    
+                        accuContigs += contigSum;
+                        
+                        starts.clear();
+                        ends.clear();
                     }
-                    at += (*sp);
-                    if(ends.size() == 0 || (*sp) == 0){
-                        ends.push_back(at);
-                    }
-                    
-                    re.push_back(std::vector<int> {(*next(lengths.begin(),indicies[n]))[j *2]});
-                    re.push_back(starts);
-                    re.push_back(ends);
-                    
-                    starts.clear();
-                    ends.clear();
-                }
+                }       // ende alle Chromosomen
+                
+                re.push_back(std::vector<int> {accuContigs});
+                re.push_back(std::vector<int> {(*totLen)});
+                r.push_back(re);
             }
-            re.push_back(std::vector<int> {accuContigs});
-            re.push_back(std::vector<int> {(*totLen)});
-            r.push_back(re);
+        }       // ende completness und contamination
+        if(!justZero){    
+            res.push_back(r);
+            baseNrs.clear();
+            indicies.clear();
         }
-        res.push_back(r);
-        baseNrs.clear();
-        indicies.clear();
     }
     return res;
 }

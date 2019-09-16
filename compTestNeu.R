@@ -4,7 +4,6 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     data = data[unique(names(data))]
     cat = subset(catalogue,GI.Vec %in% names(data))
     nms = names(data) %in% cat$GI.Vec
-    IDs = names(data)[nms]
 
     tmp1 = list()
     isUsed = c()
@@ -18,33 +17,33 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
     
     lengths = list()
     lengthSums = c()
-
+    IDs = list()
     for(i in 1:length(tmp1)){
         tmp2 = c()
+        tmp3 = c()
         lengthSums[i] = 0
         for(j in 1:length(tmp1[[i]])){
-            tmp2[length(tmp2)+1] = as.numeric(tmp1[[i]][j])
-            tmp2[length(tmp2)+1] = max(data[tmp1[[i]][j]][[1]]$end)
+            tmp3[j] = as.numeric(tmp1[[i]][j])
+            tmp2[j] = max(data[tmp1[[i]][j]][[1]]$end)
             lengthSums[i] = lengthSums[i] + tmp2[length(tmp2)]
         }
         lengths[[i]] = tmp2
+        IDs[[i]] = tmp3
 
     } 
     
-    print(number)
-    contigs = mkContigs(lengths,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
-    
+    contigs = mkContigs(lengths,IDs,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
     contranges = list()
-    tmpc = list()
-    comp = list()
-    cont = list()
-    j = 1
-    p = 1
+    
+    
     for(i in 1:length(contigs)){
         j = 1
-        for(n in seq(1,length(contigs[[i]][[1]])-4,3)){
-            print(n)
-            comp[[j]] = IRanges(start = contigs[[i]][[1]][[n+1]],end = contigs[[i]][[1]][[n+2]],names = contigs[[i]][[1]][[n]])
+        p = 1
+        tmpc = list()
+        comp = list()
+        cont = list()
+        for(n in seq(1,(length(contigs[[i]][[1]])-2),3)){
+            comp[[j]] = IRanges(start = contigs[[i]][[1]][[n+1]],end = contigs[[i]][[1]][[n+2]],names = rep(contigs[[i]][[1]][[n]],length(contigs[[i]][[1]][[n+1]])))
             j = j +1
         }
         comp[[j]] = contigs[[i]][[1]][[n+3]]/contigs[[i]][[1]][[n+4]]
@@ -52,17 +51,16 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
         p = p +1
         if(length(contigs[[i]]) > 1){
             j = 1
-            for(n in seq(1,length(contigs[[i]][[2]])-4,3)){
-                cont[[j]] = IRanges(start = contigs[[i]][[1]][[n+1]],end = contigs[[i]][[1]][[n+2]],names = contigs[[i]][[1]][[n]])
+            for(n in seq(1,(length(contigs[[i]][[2]])-2),3)){
+                cont[[j]] = IRanges(start = contigs[[i]][[2]][[n+1]],end = contigs[[i]][[2]][[n+2]],names = rep(contigs[[i]][[2]][[n]],length(contigs[[i]][[2]][[n+1]])))
                 j = j +1
             }
-            cont[[j]] = contigs[[i]][[1]][[n +3]]/contigs[[i]][[1]][[n+4]]
+            cont[[j]] = contigs[[i]][[2]][[n +3]]/contigs[[i]][[2]][[n+4]]
             tmpc[[p]] = cont
             p = p+1
         }
         contranges[[i]] = tmpc
     }
-    
     
     return(contranges)
     
@@ -76,7 +74,6 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
     
     contigs = getContigsAsIRanges(pfams,catalogue,minContigLength ,meanContigLength,comp,cont,number,seed)
     
-    print(contigs)
     for(i in 1:length(contigs)){    # fuer alle bins
             bin = list()
             
@@ -84,9 +81,21 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
                 compCont = list()
                 chromID =c()
                 pfamName =c()
-                pfamCount = c()
-                baseCount = c()
-               
+                pCount = c()
+                bCount = c()
+                nms = list()
+                
+                for(n in 1:(length(contigs[[i]][[j]]) -1)){
+                    
+                    chromID[n] = names(contigs[[i]][[j]][[n]])[1]
+                    
+                    this = pfams[[chromID[n]]]
+                    
+                    nms[[n]] = this$pfam
+                }
+                
+                nms = unique(unlist(nms))
+                dat = data.table(pfam = as.integer(nms),pfamCount = rep(0,length(nms)),baseCount = rep(0,length(nms)),key = "pfam")
                 
                 for(n in 1:(length(contigs[[i]][[j]]) -1)){     #fuer alle chromosomen
                     
@@ -94,26 +103,35 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
                     
                     this = pfams[[chromID[n]]]
                     pfamRange = IRanges(start = this$start ,end = this$end,names = this$pfam)
-                    #pfamRange = subsetByOverlaps(pfamRange,contigs[[i]][[j]][[n]])
-                    
-                    pfamName = unique(names(pfamRange))
+
                     ol = findOverlaps(pfamRange,contigs[[i]][[j]][[n]])
                     overlaps = overlapsRanges(pfamRange,contigs[[i]][[j]][[n]])
+                    dt = data.table(pfam = as.integer(names(pfamRange)[queryHits(ol)]), width = width(overlaps),orf = this$ORF[queryHits(ol)],contig = paste(names(pfamRange)[queryHits(ol)],subjectHits(ol)),key = "pfam")
+                    
+                                    
+                    bCount = dt[,sum(width),pfam]
+                    pCount = dt[,combCount := length(uniqueN(orf)),contig]
+                    pCount = dt[,sum(combCount),pfam]
+                    
+                    dat[pfam %in% bCount$pfam,baseCount := baseCount + bCount$V1]
+                    dat[pfam %in% pCount$pfam,pfamCount := pfamCount + pCount$V1]
 
-                    print(ol)
                     
-                    dt = data.table(pfam = as.integer(names(pfamRange)[queryHits(ol)]), width = width(overlaps),orf = this$ORF[queryHits(ol)])
                     
-                    baseCount = dt[,sum(width),pfam]
-                    pfamCount = dt[,rle(pfam),orf]
+                    if(i == 972){
+                        print(dat)
+                        print(pCount)
+                        print(bCount)
+                        print("")
+                    }
                     
-                    dat = merge(baseCount,pfamCount)
-            
                 }   #ende alle chromosomen
                     
                 last = length(contigs[[i]][[j]])
-                    
-                compCont= list(chromID,pfamName,pfamCount,baseCount,contigs[[i]][[j]][[last]])
+
+                
+                
+                compCont= list(chromID,dat[pfamCount > 0]$pfam,dat[pfamCount > 0]$pfamCount,dat[pfamCount > 0]$baseCount,contigs[[i]][[j]][[last]])
                 if(j == 1){
                     names(compCont) = c("chromID","pfamName","pfamCount","baseCount","completeness")
                 }
@@ -132,12 +150,10 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
             }
             res[[i]] = bin
     }       # ende alle bins
-    res[[length(res) +1]] = contigs
     print(Sys.time() -x)
     return(res)
 }
 
-pp <- profvis({pfamCounter(testDat,cata,10000,20000,1)})
 
 
 

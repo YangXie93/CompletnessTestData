@@ -129,8 +129,7 @@ pfamCount = sapply(1:length(pfamName), function(x) length(unique(this$ORF[this$p
 
 #################### format data ###############
 
-data = readRDS("~/work/Data/dataSmall.Rds")
-
+data = readRDS("~/work/Data/data.Rds")
 
 res = list()
 for(i in 1:length(data)){
@@ -138,17 +137,17 @@ for(i in 1:length(data)){
     pfam = data[[i]]$GENOME
     orf = data[[i]]$ORF
     for(j in 1:length(data[[i]]$GENOME)){
-        starts = sapply(1:length(pfam[[j]]@lengths),function(x) sum(pfam[[j]]@lengths[1:x]) - pfam[[j]]@lengths[x])
+        starts = sapply(1:length(pfam[[j]]@lengths),function(x) sum(pfam[[j]]@lengths[1:x]) - pfam[[j]]@lengths[x] +1)
         ends = sapply(1:length(pfam[[j]]@lengths),function(x) sum(pfam[[j]]@lengths[1:x]))
         pfams = pfam[[j]]@values
-        orfStarts =  sapply(1:length(orf[[j]]@lengths),function(x) sum(orf[[j]]@lengths[1:x]) - orf[[j]]@lengths[x])
+        orfStarts =  sapply(1:length(orf[[j]]@lengths),function(x) sum(orf[[j]]@lengths[1:x]) - orf[[j]]@lengths[x] +1)
         orfEnds = sapply(1:length(orf[[j]]@lengths),function(x) sum(orf[[j]]@lengths[1:x]))
         ORF = orf[[j]]@values
         pRange = IRanges(start = starts,end = ends,names = pfams)
         oRange = IRanges(start = orfStarts,end = orfEnds,names = ORF)
         
-        pRange = subset(pRange,names > 0)
-        oRange = subset(oRange,names > 0)
+        pRange = subset(pRange,as.integer(names) > 0)
+        oRange = subset(oRange,as.integer(names) > 0)
         
         tr = findOverlaps(oRange,pRange)
         ORF = names(oRange)[queryHits(tr)]
@@ -161,7 +160,49 @@ for(i in 1:length(data)){
         }
     }
     res[[i]] = tmp1
+    print(paste(i,"von:",length(data)))
 }
 names(res) = names(data)
 
+saveRDS(res,"~/work/Data/newDatafull.Rds")
+
+cata = readRDS("~/work/Data/cata.Rds")
+
+###############################################################################
+
+for(i in 1:length(x)){
+    tmp = 0
+    tmp1 = 0
+    tmp2 = 0
+    pCount = 0
+    pCountOrg = 0
+    wrongPfams = list()
+    for(j in 1:length(x[[i]]$completeness$chromID)){
+        tmp = tmp + sum(data[[ x[[i]]$completeness$chromID[j] ]]$end - data[[ x[[i]]$completeness$chromID[j] ]]$start +1)
+        tmp1 = tmp1 + max(data[[ x[[i]]$completeness$chromID[j] ]]$end)
+        tmp2 = tmp2 + sum(width(conts[[i]][[1]][[j]]))
+        pCountOrg = pCountOrg + sum(rle(sort(as.integer(data[[ x[[i]]$completeness$chromID[j] ]]$pfam)))$lengths)
+        pCount = pCount + sum(x[[i]]$completeness$pfamCount)
+        wrongPfams[[j]] = data[[ x[[i]]$completeness$chromID[j] ]]$pfam
+    }
+    wrongPfams = unique(unlist(wrongPfams))
+    if(sum(x[[i]]$completeness$baseCount)/tmp -x[[i]]$completeness$completeness > 0.1 || sum(x[[i]]$completeness$baseCount)/tmp -x[[i]]$completeness$completeness < -0.1){
+        print(paste("bCount",i))
+        print(length(x[[i]]$completeness$chromID))
+        print(paste(sum(x[[i]]$completeness$baseCount)/tmp,tmp2/tmp1,x[[i]]$completeness$completeness))
+    }
+    if(pCount/pCountOrg - x[[i]]$completeness$completeness > 0.1 || pCount/pCountOrg - x[[i]]$completeness$completeness < -0.1 ){
+        print(paste("pCount",i))
+        print(length(x[[i]]$completeness$chromID))
+        print(paste(pCount/pCountOrg,x[[i]]$completeness$completeness))
+    }
+    if(length(x[[i]]$completeness$pfamName)/length(wrongPfams) -x[[i]]$completeness$completeness > 0.1 ||length(x[[i]]$completeness$pfamName)/length(wrongPfams) -x[[i]]$completeness$completeness < -0.1 ){
+        print(paste("Nr Unique ps",i))
+        print(length(x[[i]]$completeness$chromID))
+        print(paste(length(x[[i]]$completeness$pfamName)/length(wrongPfams),x[[i]]$completeness$completeness))
+    }
+}
+
+# 391
+# 972
 
