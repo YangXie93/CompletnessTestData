@@ -129,7 +129,7 @@ pfamCount = sapply(1:length(pfamName), function(x) length(unique(this$ORF[this$p
 
 #################### format data ###############
 
-data = readRDS("~/work/Data/data.Rds")
+dat = readRDS("~/Data/data.Rds")
 
 res = list()
 for(i in 1:length(data)){
@@ -174,35 +174,118 @@ for(i in 1:length(x)){
     tmp = 0
     tmp1 = 0
     tmp2 = 0
-    pCount = 0
+    pCount = sum(x[[i]]$completeness$pfamCount)
     pCountOrg = 0
+    verh1 = list()
+    verh2 = list()
     wrongPfams = list()
+    print(i)
     for(j in 1:length(x[[i]]$completeness$chromID)){
         tmp = tmp + sum(data[[ x[[i]]$completeness$chromID[j] ]]$end - data[[ x[[i]]$completeness$chromID[j] ]]$start +1)
         tmp1 = tmp1 + max(data[[ x[[i]]$completeness$chromID[j] ]]$end)
         tmp2 = tmp2 + sum(width(conts[[i]][[1]][[j]]))
-        pCountOrg = pCountOrg + sum(rle(sort(as.integer(data[[ x[[i]]$completeness$chromID[j] ]]$pfam)))$lengths)
-        pCount = pCount + sum(x[[i]]$completeness$pfamCount)
+        pCountOrg = pCountOrg + length(data[[ x[[i]]$completeness$chromID[j] ]]$pfam)
+        
+
+        verh1[[j]] =  data[[ x[[i]]$completeness$chromID[j] ]][,length(ORF),pfam]$V1
+        verh2[[j]] =  data[[ x[[i]]$completeness$chromID[j] ]][,uniqueN(ORF),pfam]$V1
+        
         wrongPfams[[j]] = data[[ x[[i]]$completeness$chromID[j] ]]$pfam
     }
+    
+    verh1 = mean(unlist(verh1 )*x[[i]]$completeness$completeness)
+    verh2 = mean(unlist(verh2 )*x[[i]]$completeness$completeness)
     wrongPfams = unique(unlist(wrongPfams))
-    if(sum(x[[i]]$completeness$baseCount)/tmp -x[[i]]$completeness$completeness > 0.1 || sum(x[[i]]$completeness$baseCount)/tmp -x[[i]]$completeness$completeness < -0.1){
+    
+    
+    if(sum(x[[i]]$completeness$baseCount)/tmp -x[[i]]$completeness$completeness > 0.01 || sum(x[[i]]$completeness$baseCount)/tmp -x[[i]]$completeness$completeness < -0.01){
+        print("")
         print(paste("bCount",i))
         print(length(x[[i]]$completeness$chromID))
         print(paste(sum(x[[i]]$completeness$baseCount)/tmp,tmp2/tmp1,x[[i]]$completeness$completeness))
+        print("")
     }
-    if(pCount/pCountOrg - x[[i]]$completeness$completeness > 0.1 || pCount/pCountOrg - x[[i]]$completeness$completeness < -0.1 ){
+    
+    
+    
+    if((pCount/pCountOrg) - (verh2/verh1) > 0.01 || (pCount/pCountOrg) - (verh2/verh1) < -0.01 ){
         print(paste("pCount",i))
         print(length(x[[i]]$completeness$chromID))
-        print(paste(pCount/pCountOrg,x[[i]]$completeness$completeness))
+        print(paste(pCount/pCountOrg,(x[[i]]$completeness$completeness/2)))
     }
-    if(length(x[[i]]$completeness$pfamName)/length(wrongPfams) -x[[i]]$completeness$completeness > 0.1 ||length(x[[i]]$completeness$pfamName)/length(wrongPfams) -x[[i]]$completeness$completeness < -0.1 ){
-        print(paste("Nr Unique ps",i))
-        print(length(x[[i]]$completeness$chromID))
-        print(paste(length(x[[i]]$completeness$pfamName)/length(wrongPfams),x[[i]]$completeness$completeness))
+    
+    
+    
+    # if(length(x[[i]]$completeness$pfamName)/length(wrongPfams) -x[[i]]$completeness$completeness > 0.1 ||length(x[[i]]$completeness$pfamName)/length(wrongPfams) -x[[i]]$completeness$completeness < -0.1 ){
+    #     print(paste("Nr Unique ps",i))
+    #     print(length(x[[i]]$completeness$chromID))
+    #     print(paste(length(x[[i]]$completeness$pfamName)/length(wrongPfams),x[[i]]$completeness$completeness))
+    # }
+}
+
+# [1] "pCount 357"
+# [1] 1
+# [1] "1 0.5"
+
+
+# [1] "pCount 256"
+# [1] 1
+# [1] "0.659770114942529 0.5"
+
+
+# [1] "pCount 186"
+# [1] 1
+# [1] "0.307692307692308 0.5"
+
+
+
+
+data = readRDS("~/Daten/newData1000.Rds")
+cata = readRDS("~/Daten/cata.Rds")
+
+# 1797 index
+# 7690 pfam
+
+mean(testData[[1]][,length(unique(pfam)),ORF]$V1)
+mean(testData[[1]][,length(pfam),ORF]$V1)
+
+# [1] "pCount 616"
+# [1] 3
+# [1] "0.508379888268156 0.479669274570136"
+n = IRanges(start = testData[[1]]$start,end = testData[[1]]$end,names = testData[[1]]$pfam)
+n = IRanges(start = testData[[2]]$start,end = testData[[2]]$end,names = testData[[2]]$pfam)
+
+
+
+testRes = x[[616]]$completeness
+testContigs = conts[[616]][[1]]
+testData = data[testRes$completeness$chromID]
+
+count = 0
+for(i in 1:length(testRes$pfamCount)){
+    for(j in 1:length(testData)){
+        count = 
     }
 }
 
-# 391
-# 972
+
+########################
+
+c = list()
+j = 1
+for(i in seq(1,length(data),2)){
+    tc = list()
+    qc = list()
+    tc[[1]] = IRanges(start = 1,end =  max(data[[i]]$end),names = names(data)[i])
+    tc[[2]] = 1
+    qc[[1]] = IRanges(start = 1,end =  max(data[[i+1]]$end),names = names(data)[i+1])
+    qc[[2]] = 1
+    ttc[[1]] = tc
+    ttc[[2]] = qc
+    c[[j]] = ttc
+    j = j +1
+}
+
+
+
 

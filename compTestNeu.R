@@ -49,6 +49,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
         comp[[j]] = contigs[[i]][[1]][[n+3]]/contigs[[i]][[1]][[n+4]]
         tmpc[[p]] = comp
         p = p +1
+        tmpNms = c("completeness")
         if(length(contigs[[i]]) > 1){
             j = 1
             for(n in seq(1,(length(contigs[[i]][[2]])-2),3)){
@@ -57,8 +58,11 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
             }
             cont[[j]] = contigs[[i]][[2]][[n +3]]/contigs[[i]][[2]][[n+4]]
             tmpc[[p]] = cont
+            tmpNms[[p]] = "contamination"
             p = p+1
+            
         }
+        names(tmpc) = tmpNms
         contranges[[i]] = tmpc
     }
     
@@ -86,6 +90,7 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
                 pCount = c()
                 bCount = c()
                 nms = list()
+
                 
                 for(n in 1:(length(contigs[[i]][[j]]) -1)){
                     
@@ -108,28 +113,20 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
 
                     ol = findOverlaps(pfamRange,contigs[[i]][[j]][[n]])
                     overlaps = overlapsRanges(pfamRange,contigs[[i]][[j]][[n]])
-                    dt = data.table(pfam = as.integer(names(pfamRange)[queryHits(ol)]), width = width(overlaps),contigORFComb = as.integer(this$ORF[queryHits(ol)])+subjectHits(ol),key = "pfam")
+                    this = this[queryHits(ol)]
+                    dt = data.table(pfam = as.integer(this$pfam), width = width(overlaps),contigORFComb = paste(this$ORF,subjectHits(ol)),key = "pfam")
                     
-                                    
                     bCount = dt[,sum(width),pfam]
                     pCount = dt[,uniqueN(contigORFComb),pfam]
 
-                    
                     dat[pfam %in% bCount$pfam,baseCount := baseCount + bCount$V1]
                     dat[pfam %in% pCount$pfam,pfamCount := pfamCount + pCount$V1]
 
-                    if(i == 972){
-                        print(dt)
-                        print(dat)
-                        print(pCount)
-                        print("")
-                    }
+
                     
                 }   #ende alle chromosomen
                     
                 last = length(contigs[[i]][[j]])
-
-                
                 
                 compCont= list(chromID,dat[pfamCount > 0]$pfam,dat[pfamCount > 0]$pfamCount,dat[pfamCount > 0]$baseCount,contigs[[i]][[j]][[last]])
                 if(j == 1){
