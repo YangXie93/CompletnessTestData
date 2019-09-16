@@ -74,9 +74,11 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
     
     contigs = getContigsAsIRanges(pfams,catalogue,minContigLength ,meanContigLength,comp,cont,number,seed)
     
+    print("start counting")
+    
     for(i in 1:length(contigs)){    # fuer alle bins
             bin = list()
-            
+            print(i)
             for(j in 1:(length(contigs[[i]]))){       # fuer completeness und contamination
                 compCont = list()
                 chromID =c()
@@ -96,7 +98,7 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
                 
                 nms = unique(unlist(nms))
                 dat = data.table(pfam = as.integer(nms),pfamCount = rep(0,length(nms)),baseCount = rep(0,length(nms)),key = "pfam")
-                
+
                 for(n in 1:(length(contigs[[i]][[j]]) -1)){     #fuer alle chromosomen
                     
                     chromID[n] = names(contigs[[i]][[j]][[n]])[1]
@@ -106,22 +108,20 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
 
                     ol = findOverlaps(pfamRange,contigs[[i]][[j]][[n]])
                     overlaps = overlapsRanges(pfamRange,contigs[[i]][[j]][[n]])
-                    dt = data.table(pfam = as.integer(names(pfamRange)[queryHits(ol)]), width = width(overlaps),orf = this$ORF[queryHits(ol)],contig = paste(names(pfamRange)[queryHits(ol)],subjectHits(ol)),key = "pfam")
+                    dt = data.table(pfam = as.integer(names(pfamRange)[queryHits(ol)]), width = width(overlaps),contigORFComb = as.integer(this$ORF[queryHits(ol)])+subjectHits(ol),key = "pfam")
                     
                                     
                     bCount = dt[,sum(width),pfam]
-                    pCount = dt[,combCount := length(uniqueN(orf)),contig]
-                    pCount = dt[,sum(combCount),pfam]
+                    pCount = dt[,uniqueN(contigORFComb),pfam]
+
                     
                     dat[pfam %in% bCount$pfam,baseCount := baseCount + bCount$V1]
                     dat[pfam %in% pCount$pfam,pfamCount := pfamCount + pCount$V1]
 
-                    
-                    
                     if(i == 972){
+                        print(dt)
                         print(dat)
                         print(pCount)
-                        print(bCount)
                         print("")
                     }
                     
@@ -150,6 +150,7 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
             }
             res[[i]] = bin
     }       # ende alle bins
+    print("end counting")
     print(Sys.time() -x)
     return(res)
 }
