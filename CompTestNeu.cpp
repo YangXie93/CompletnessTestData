@@ -373,10 +373,10 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         for(n = 0; n < (int) baseNrs.size();n++){       // für completeness und contamination 
             
             if(n == 0){
-                Rcout << "comp: " << std::endl;
+                Rcout << "comp: " << partCovered << std::endl;
             }
             else{
-                Rcout << "cont: " << std::endl; 
+                Rcout << "cont: " << contPart << std::endl; 
             }
             
             std::list<std::vector<int> > re;
