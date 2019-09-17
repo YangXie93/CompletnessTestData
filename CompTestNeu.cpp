@@ -346,7 +346,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i);
             justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
             if(justZero){
-                Rcout << i << " " << indicies[n] << " " << partCovered << std::endl;
+                Rcout << *((*next(IDs.begin(),indicies[n])).begin()) << " " << i << " " << indicies[n] << " " << partCovered << std::endl;
             }
             if(!justZero){    
                 l = 0;
