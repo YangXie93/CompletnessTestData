@@ -209,10 +209,10 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         
         for(int i = 0;i < tmp2.size();i++){
             res[accession[i]] = (int) (needed* (tmp2[i]/(double)ges));
-            // if(res[accession[i]] < minContigLength){
-            //     Rcout << whichToSmall << ": kleiner als minContigLength \n";
-            //     Rcout << needed << " " << tmp2[i]<< " " << ges << " " << res[accession[i]] << " " << tmp1[i] << " " << tmp1.size() << std::endl;
-            // }
+            if(res[accession[i]] < minContigLength){
+                Rcout << whichToSmall << ": kleiner als minContigLength \n";
+                Rcout << needed << " " << tmp2[i]<< " " << ges << " " << res[accession[i]] << " " << tmp1[i] << " " << tmp1.size() << std::endl;
+            }
         }
         
     }
@@ -373,6 +373,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         for(n = 0; n < (int) baseNrs.size();n++){       // für completeness und contamination 
             
             if(n == 0){
+                Rcout << i+1 << std::endl;
                 Rcout << "comp: " << partCovered << std::endl;
             }
             else{
@@ -391,7 +392,6 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
                     
                     Rcout << " " << (*next(IDs.begin(),indicies[n]))[j];
-                    
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
                     if( contigs.size() > 0){
                         
