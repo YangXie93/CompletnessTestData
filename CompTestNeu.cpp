@@ -21,7 +21,7 @@ using namespace Rcpp;
 
 std::vector<int> randomContigs(int minContigLength,int meanContigLength,int covering,std::string distr = "normal",int seed = 0){
     if(covering <= 0){
-        return std::vector<int> (1,0);
+        return std::vector<int> {};
     }
     if(covering <= minContigLength){
         return std::vector<int> (1,covering);
@@ -248,7 +248,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
     std::vector<int> chromBaseNrs;
     std::vector<int>::iterator which;
     std::vector<int>::iterator max;
-    // std::list<std::vector<int> >::iterator tester;
+    std::list<std::vector<int> >::iterator tester;
     
     bool swtch;
     int index;
@@ -289,18 +289,18 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
         testTmp = (generator() % lengthSums.size());
         which = next(lengthSums.begin(),testTmp);
-        // tester = next(lengths.begin(),testTmp);
+        tester = next(lengths.begin(),testTmp);
         
         while(((*which)* partCovered) < minContigLength && count < (int)lengthSums.size()){
             which++;
             count++;
-            // tester++;
-            // 
-            // if((find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
-            //     which++;
-            //     tester++;
-            //     count++;
-            // }
+            tester++;
+
+            if((find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
+                which++;
+                tester++;
+                count++;
+            }
             
             if(which == lengthSums.end()){
                 which = lengthSums.begin();
@@ -335,7 +335,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             count = 0;
             testTmp = (generator() % lengthSums.size());
             which = next(lengthSums.begin(),testTmp);
-            // tester = next(lengths.begin(),testTmp);
+            tester = next(lengths.begin(),testTmp);
             max = lengthSums.begin();
             while(((*which) < *prev(baseNrs.end()) && count < (int)lengthSums.size()) || which == totLen){
                 if(which == lengthSums.end()){
@@ -348,13 +348,13 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                     }
                     which++;
                     count++;
-                    // tester++;
-                    // 
-                    // if((find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
-                    //     which++;
-                    //     tester++;
-                    //     count++;
-                    // }
+                    tester++;
+
+                    if((find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
+                        which++;
+                        tester++;
+                        count++;
+                    }
                 }
             }
             if(((*which) < *prev(baseNrs.end()) && count == (int)lengthSums.size()) || which == lengthSums.end() || which == totLen){
@@ -383,10 +383,10 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
                     
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
-                    if(contigs.size() <= 0 && contigs[0] == 0){
-                        Rcout << (*next(IDs.begin(),indicies[n]))[j] << std::endl;
+                    if(contigs.size() <= 0){
+                        Rcout << "no Contigs at: " << j << " " << n << " " << i << " " << (*next(IDs.begin(),indicies[n]))[j] << std::endl;
                     }
-                    if( contigs.size() > 0 && contigs[0] != 0){
+                    if( contigs.size() > 0){
                         
                         contigSum = accumulate(contigs.begin(),contigs.end(),0);
                         
@@ -430,14 +430,12 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                         ends.clear();
                     }
                 }       // ende alle Chromosomen
-                if( contigs.size() > 0 && contigs[0] != 0){
-                    re.push_back(std::vector<int> {accuContigs});
-                    re.push_back(std::vector<int> {(*totLen)});
-                    r.push_back(re);
-                }
+                re.push_back(std::vector<int> {accuContigs});
+                re.push_back(std::vector<int> {(*totLen)});
+                r.push_back(re);
             }
         }       // ende completness und contamination
-        if(!justZero &&  contigs.size() > 0 && contigs[0] != 0){    
+        if(!justZero){    
             res.push_back(r);
             baseNrs.clear();
             indicies.clear();
