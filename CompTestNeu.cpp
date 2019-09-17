@@ -383,9 +383,6 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
                     
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
-                    if(contigs.size() <= 0){
-                        Rcout << "no Contigs at: " << j << " " << n << " " << i << " " << (*next(IDs.begin(),indicies[n]))[j] << std::endl;
-                    }
                     if( contigs.size() > 0){
                         
                         contigSum = accumulate(contigs.begin(),contigs.end(),0);
