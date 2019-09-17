@@ -173,6 +173,7 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         for(int i = 0;i < tmp1.size();i++){
             relMin = (int) round(((needed/(double)totalLength) * (tmp1[i]/(double)totalLength)) *totalLength);
             min = (int) round(((minContigLength)/(double) (needed - minContigLength)) *(totalLength-tmp1[i]));
+            
             if(min < tmp1[i]){
                 if(relMin > min){
                     tmp2.push_back(relMin + (generator() % (tmp1[i] - relMin) ));
@@ -186,11 +187,29 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
             }
         }
         ges = accumulate(tmp2.begin(),tmp2.end(),0);
+        
+        if(ges == 0){
+            int x = 0;
+            int max = 0;
+            while(tmp1[x] < needed){
+                x++;
+                if(tmp1[x] > tmp1[max]){
+                    max = x;
+                }
+                if(x == tmp1.size() -1){
+                    x = max;
+                    break;
+                }
+            }
+            tmp2[x] = 1;
+            ges = 1;
+        }
+        
         for(int i = 0;i < tmp2.size();i++){
             res[accession[i]] = (int) (needed* (tmp2[i]/(double)ges));
             // if(res[accession[i]] < minContigLength){
             //     Rcout << whichToSmall << ": kleiner als minContigLength \n";
-            //     Rcout << needed << " " << tmp2[i]<< " " << ges << " " << res[accession[i]] << " " << tmp1[i] << std::endl;
+            //     Rcout << needed << " " << tmp2[i]<< " " << ges << " " << res[accession[i]] << " " << tmp1[i] << " " << tmp1.size() << std::endl;
             // }
         }
         
@@ -234,7 +253,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
     double partCovered;
     bool contIsNull;
     bool justZero = false;
-    
+
     //--------- Prüfen von comp und cont ---------------
     
     if(cont[1] > comp[0]){
@@ -326,6 +345,9 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             accuContigs = 0;
             chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i);
             justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
+            if(justZero){
+                Rcout << i << " " << indicies[n] << " " << partCovered << std::endl;
+            }
             if(!justZero){    
                 l = 0;
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen

@@ -29,12 +29,15 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
         }
         lengths[[i]] = tmp2
         IDs[[i]] = tmp3
-
+        if(i == 3096){
+            print(lengths[[i]])
+            print(IDs[[i]])
+        }
     } 
     
     contigs = mkContigs(lengths,IDs,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
     contranges = list()
-    
+    print(length(contigs))
     
     for(i in 1:length(contigs)){
         j = 1
@@ -77,7 +80,7 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
     res = list()
     
     contigs = getContigsAsIRanges(pfams,catalogue,minContigLength ,meanContigLength,comp,cont,number,seed)
-    
+    print(length(contigs))
     print("start counting")
     
     for(i in 1:length(contigs)){    # fuer alle bins
@@ -112,7 +115,7 @@ pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,
                     pfamRange = IRanges(start = this$start ,end = this$end,names = this$pfam)
 
                     ol = findOverlaps(pfamRange,contigs[[i]][[j]][[n]])
-                    overlaps = overlapsRanges(pfamRange,contigs[[i]][[j]][[n]])
+                    overlaps = overlapsRanges(pfamRange,contigs[[i]][[j]][[n]],hits = ol)
                     this = this[queryHits(ol)]
                     dt = data.table(pfam = as.integer(this$pfam), width = width(overlaps),contigORFComb = paste(this$ORF,subjectHits(ol)),key = "pfam")
                     
