@@ -166,6 +166,10 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         j++;
     }
     
+    if(totalLength < needed){
+        needed = totalLength;
+    }
+    
     if(tmp1.size() > 0){
         
         std::vector<int> tmp2;
