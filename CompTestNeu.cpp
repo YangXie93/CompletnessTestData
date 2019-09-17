@@ -430,9 +430,6 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                         }           // ende alle Contigs
                         
                         at += (*sp);
-                        if(ends.size() == 0 || (*sp) == 0){
-                            ends.push_back(at);
-                        }
                         
                         re.push_back(std::vector<int> {(*next(IDs.begin(),indicies[n]))[j]});
                         re.push_back(starts);
