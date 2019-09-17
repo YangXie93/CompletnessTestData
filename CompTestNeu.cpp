@@ -178,13 +178,12 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         for(int i = 0;i < tmp1.size();i++){
             relMin = (int) round(((needed/(double)totalLength) * (tmp1[i]/(double)totalLength)) *totalLength);
             min = (int) round(((minContigLength)/(double) (needed - minContigLength)) *(totalLength-tmp1[i]));
-            
             if(min < tmp1[i]){
                 if(relMin > min){
-                    tmp2.push_back(relMin + (generator() % (tmp1[i] - relMin) ));
+                    tmp2.push_back(relMin + (generator() % (tmp1[i] - relMin +1) ));
                 }
                 else{
-                    tmp2.push_back(min + (generator() % (tmp1[i] - min)));
+                    tmp2.push_back(min + (generator() % (tmp1[i] - min +1)));
                 }
             }
             else{
