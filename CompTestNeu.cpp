@@ -216,7 +216,7 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
             res[accession[i]] = (int) (needed* (tmp2[i]/(double)ges));
             if(res[accession[i]] < minContigLength){
                 Rcout << whichToSmall << ": kleiner als minContigLength \n";
-                Rcout << needed << " " << tmp2[i]<< " " << ges << " " << res[accession[i]] << " " << tmp1[i] << " " << tmp1.size() << std::endl;
+                Rcout << "angefordert: " << needed << " Anteil(%): " << tmp2[i]/(double)ges << " Anteil(basen): " << res[accession[i]] << " Laenge: " << tmp1[i] << " Anzahl chrom groesser min: " << tmp1.size() << std::endl;
             }
         }
         
