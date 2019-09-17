@@ -168,6 +168,7 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     
     if(totalLength < needed){
         needed = totalLength;
+        Rcout << whichToSmall << " die angefragte Menge ist nicht erreichbar\n";
     }
     
     if(tmp1.size() > 0){
@@ -379,6 +380,9 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             if(n == 0){
                 Rcout << i+1 << std::endl;
                 Rcout << "comp: " << partCovered << std::endl;
+                if(i == 409){
+                    Rcout << "Gesamtlaenge: " << (*totLen) << std::endl;
+                }
             }
             else{
                 Rcout << "cont: " << contPart << std::endl; 
@@ -397,6 +401,9 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                     
                     Rcout << " von: " << (*next(IDs.begin(),indicies[n]))[j] << " mit Laenge: " << (*next(lengths.begin(),indicies[n]))[j] << " nimm: " << chromBaseNrs[j] << std::endl;
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
+                    if(i == 409){
+                        Rcout << "Anzahl der Contigs " << contigs.size() << std::endl;
+                    }
                     if( contigs.size() > 0){
                         
                         contigSum = accumulate(contigs.begin(),contigs.end(),0);
