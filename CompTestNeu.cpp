@@ -369,7 +369,15 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         indicies.push_back(index);
         
         std::list<std::list<std::vector<int> > > r;
+        
         for(n = 0; n < (int) baseNrs.size();n++){       // für completeness und contamination 
+            
+            if(n == 0){
+                Rcout << "comp: " << std::endl;
+            }
+            else{
+                Rcout << "cont: " << std::endl; 
+            }
             
             std::list<std::vector<int> > re;
             accuContigs = 0;
@@ -381,6 +389,8 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             if(!justZero){    
                 l = 0;
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
+                    
+                    Rcout << " " << (*next(IDs.begin(),indicies[n]))[j];
                     
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
                     if( contigs.size() > 0){
@@ -431,7 +441,9 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 re.push_back(std::vector<int> {(*totLen)});
                 r.push_back(re);
             }
+            Rcout << std::endl << std::endl;
         }       // ende completness und contamination
+        Rcout << "-------------" << std::endl << std::endl;
         if(!justZero){    
             res.push_back(r);
             baseNrs.clear();
