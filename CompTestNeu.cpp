@@ -177,7 +177,12 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         
         for(int i = 0;i < tmp1.size();i++){
             relMin = (int) round(((needed/(double)totalLength) * (tmp1[i]/(double)totalLength)) *totalLength);
-            min = (int) round(((minContigLength)/(double) (needed - minContigLength)) *(totalLength-tmp1[i]));
+            if(needed != totalLength){
+                min = (int) round(((minContigLength)/(double) (needed - minContigLength)) *(totalLength-tmp1[i]));
+            }
+            else{
+                min = 0;
+            }
             if(min < tmp1[i]){
                 if(relMin > min){
                     tmp2.push_back(relMin + (generator() % (tmp1[i] - relMin +1) ));
@@ -417,19 +422,11 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                         at = 0;
                         for(int m = 0;m < (int)contigs.size();m++){     // für alle Contigs
                             at += (*sp);
-                            if(swtch){
-                                starts.push_back(at+1);
-                            }
+                            starts.push_back(at+1);
                             at += (*co);
                             sp++;
                             co++;
-                            if((*sp) > 0){
-                                ends.push_back(at);
-                                swtch = true;
-                            }
-                            else{
-                                swtch = false;
-                            }
+                            ends.push_back(at);
                         }           // ende alle Contigs
                         
                         at += (*sp);
