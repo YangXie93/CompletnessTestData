@@ -391,7 +391,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 l = 0;
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
                     
-                    Rcout << " " << (*next(IDs.begin(),indicies[n]))[j];
+                    Rcout << " von: " << (*next(IDs.begin(),indicies[n]))[j] << " mit Laenge: " << (*next(lengths.begin(),indicies[n]))[j] << " nimm: " << chromBaseNrs[j] << std::endl;
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
                     if( contigs.size() > 0){
                         
