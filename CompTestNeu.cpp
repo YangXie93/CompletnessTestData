@@ -168,7 +168,8 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
     
     if(totalLength < needed){
         needed = totalLength;
-        Rcout << whichToSmall << " die angefragte Menge ist nicht erreichbar\n";
+        if(debugInfo)
+            Rcout << whichToSmall << " die angefragte Menge ist nicht erreichbar\n";
     }
     
     if(tmp1.size() > 0){
@@ -395,8 +396,8 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             accuContigs = 0;
             chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i);
             justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
-            if(justZero){
-                Rcout << *((*next(IDs.begin(),indicies[n])).begin()) << " " << i << " " << indicies[n] << " " << partCovered << std::endl;
+            if(justZero && debugInfo){
+                Rcout << *((*next(IDs.begin(),indicies[n])).begin()) << " " << i << " " << indicies[n] << " " << contPart << std::endl;
             }
             if(!justZero){    
                 l = 0;
