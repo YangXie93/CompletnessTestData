@@ -29,10 +29,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
         }
         lengths[[i]] = tmp2
         IDs[[i]] = tmp3
-        if(i == 3096){
-            print(lengths[[i]])
-            print(IDs[[i]])
-        }
+
     } 
     
     contigs = mkContigs(lengths,IDs,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)

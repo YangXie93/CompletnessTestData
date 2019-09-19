@@ -135,7 +135,7 @@ std::vector<int> randomSpaces(int numSp,int free,int seed){
 int whichToSmall;
 
 //[[Rcpp::export]]
-std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vector<int> lengths,int needed,int seed){
+std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vector<int> lengths,int needed,int seed,bool debugInfo = false){
     
     std::default_random_engine generator;
     generator.seed(seed);
@@ -218,7 +218,7 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
         
         for(int i = 0;i < tmp2.size();i++){
             res[accession[i]] = (int) (needed* (tmp2[i]/(double)ges));
-            if(res[accession[i]] < minContigLength){
+            if(res[accession[i]] < minContigLength && debugInfo){
                 Rcout << whichToSmall << ": kleiner als minContigLength \n";
                 Rcout << "angefordert: " << needed << " Anteil(%): " << tmp2[i]/(double)ges << " Anteil(basen): " << res[accession[i]] << " Laenge: " << tmp1[i] << " Anzahl chrom groesser min: " << tmp1.size() << std::endl;
             }
@@ -237,7 +237,7 @@ bool isBiggerMinL(int i){
 
 //' @export
 //[[Rcpp::export]]
-std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::vector<int> >& lengths,std::list<std::vector<int> > &IDs,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,int seed = 0,std::string distr = "normal"){
+std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::vector<int> >& lengths,std::list<std::vector<int> > &IDs,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,int seed = 0,std::string distr = "normal",bool debugInfo = false){
     whichToSmall = 0;
     minL = minContigLength;
     
@@ -381,17 +381,16 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         
         for(n = 0; n < (int) baseNrs.size();n++){       // für completeness und contamination 
             
-            if(n == 0){
-                Rcout << i+1 << std::endl;
-                Rcout << "comp: " << partCovered << std::endl;
-                if(i == 409){
+            if(debugInfo){
+                if(n == 0){
+                    Rcout << i+1 << std::endl;
+                    Rcout << "comp: " << partCovered << std::endl;
                     Rcout << "Gesamtlaenge: " << (*totLen) << std::endl;
                 }
+                else{
+                    Rcout << "cont: " << contPart << std::endl; 
+                }
             }
-            else{
-                Rcout << "cont: " << contPart << std::endl; 
-            }
-            
             std::list<std::vector<int> > re;
             accuContigs = 0;
             chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i);
@@ -403,9 +402,9 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 l = 0;
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
                     
-                    Rcout << " von: " << (*next(IDs.begin(),indicies[n]))[j] << " mit Laenge: " << (*next(lengths.begin(),indicies[n]))[j] << " nimm: " << chromBaseNrs[j] << std::endl;
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
-                    if(i == 409){
+                    if(debugInfo){
+                        Rcout << " von: " << (*next(IDs.begin(),indicies[n]))[j] << " mit Laenge: " << (*next(lengths.begin(),indicies[n]))[j] << " nimm: " << chromBaseNrs[j] << std::endl;
                         Rcout << "Anzahl der Contigs " << contigs.size() << std::endl;
                     }
                     if( contigs.size() > 0){
@@ -445,9 +444,11 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                 re.push_back(std::vector<int> {(*totLen)});
                 r.push_back(re);
             }
-            Rcout << std::endl << std::endl;
+            if(debugInfo)
+                Rcout << std::endl << std::endl;
         }       // ende completness und contamination
-        Rcout << "-------------" << std::endl << std::endl;
+        if(debugInfo)
+            Rcout << "-------------" << std::endl << std::endl;
         if(!justZero){    
             res.push_back(r);
             baseNrs.clear();
