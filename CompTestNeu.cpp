@@ -173,7 +173,7 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
     
     
     for(int i = 0;i < tmp1.size();i++){
-        share = tmp1[i]/minContigLength;
+        share = round(tmp1[i]/minContigLength);
         for(int j = 0;j < share;j++ ){
             relFreq.push_back(i);
         }
@@ -182,9 +182,11 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
     
     bool noMore = false;
     int count;
-    while(needed > 0 && noMore){
+    while(needed > 0 && !noMore){
         at = generator() %relFreq.size();
         rF = next(relFreq.begin(),at);
+        
+        Rcout << tmp1[(*rF)] << " " << (*rF) << std::endl;
         
         count = 0;
         while(tmp1[(*rF)] < minContigLength && count < relFreq.size()){
@@ -197,13 +199,19 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
                 noMore = true;
             }
         }
-        
-        draw = round(distr(generator));
-        
-        needed -= draw;
-        tmp1[(*rF)] -= draw;
-        res[accession[(*rF)]] += draw;
-        
+        if(!noMore){
+            draw = round(distr(generator));
+            
+            if(draw > tmp1[(*rF)]){
+                draw = tmp1[(*rF)];
+            }
+            tmp1[(*rF)] -= draw;
+            
+            res[accession[(*rF)]] += draw;
+
+            relFreq.erase(rF);
+            needed -= draw;
+        }
     }
     
     
