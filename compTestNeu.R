@@ -1,5 +1,5 @@
 #' @export
-getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,comp = c(0.6,1),cont = c(0,0.4),number,seed,distr = "normal"){
+getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,comp = c(0.6,1),cont = c(0,0.4),number,seed,distr = "normal",debugInfo = FALSE){
     
     data = data[unique(names(data))]
     cat = subset(catalogue,GI.Vec %in% names(data))
@@ -32,7 +32,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
 
     } 
     
-    contigs = mkContigs(lengths,IDs,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr)
+    contigs = mkContigs(lengths,IDs,lengthSums,minContigLength,meanContigLength,number,comp,cont,seed,distr,debugInfo)
     contranges = list()
     print(length(contigs))
     
@@ -72,7 +72,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
 
 
 
-pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,comp = c(0.6,1),cont = c(0,0.4),seed =1){
+pfamCounter <- function(pfams,catalogue,minContigLength,meanContigLength,number,comp = c(0.6,1),cont = c(0,0.4),seed =1,debugInfo){
     x = Sys.time()
     res = list()
     

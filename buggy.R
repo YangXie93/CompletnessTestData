@@ -1,10 +1,11 @@
+rm(list = ls())
 library(IRanges)
 library(data.table)
 
 Rcpp::sourceCpp('CompTestNeu.cpp')
-source('~/work/CompletnessTestData/compTestNeu.R')
-data = readRDS("~/work/Data/newDatafull.Rds")
-cata = readRDS("~/work/Data/cata.Rds")
+source('compTestNeu.R')
+data = readRDS("~/Daten/newData1000.Rds")
+cata = readRDS("~/Daten/cata.Rds")
 
-x = pfamCounter(data,cata,10000,20000,number = 1000,seed = 1)
+x = getContigsAsIRanges(data,cata,10000,20000,number = 10000,seed = 1,debugInfo = TRUE)
 

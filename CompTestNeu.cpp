@@ -135,35 +135,33 @@ std::vector<int> randomSpaces(int numSp,int free,int seed){
 int whichToSmall;
 
 //[[Rcpp::export]]
-std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vector<int> lengths,int needed,int seed,bool debugInfo = false){
+std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int totalLength,std::vector<int> lengths,int needed,int seed,bool debugInfo = false){
     
     std::default_random_engine generator;
     generator.seed(seed);
+    
+    std::normal_distribution<double> distr (meanContigLength,sqrt(meanContigLength));
+    
     std::vector<int> res (lengths.size(),0);
     int share;
     int at;
     int tmp;
-    int ges;
-    int min;
-    int relMin;
+    int draw;
     
     std::vector<int> tmp1;
     std::vector<int> accession;
-    std::vector<int> acc;
-    
-    int j = 0;
-    int n = 0;
+    std::vector<int> relFreq;
+    relFreq.reserve(totalLength*2/minContigLength);
+    std::vector<int>::iterator rF; 
+
     for(int i = 0;i < (int) lengths.size();i++){
         if(lengths[i] > minContigLength){
             tmp1.push_back(lengths[i]);
-            accession.push_back(j);
-            acc.push_back(n);
-            n++;
+            accession.push_back(i);
         }
         else{
             totalLength -= lengths[i];
         }
-        j++;
     }
     
     if(totalLength < needed){
@@ -172,60 +170,43 @@ std::vector<int> fromWhichHowMany(int minContigLength,int totalLength,std::vecto
             Rcout << whichToSmall << " die angefragte Menge ist nicht erreichbar\n";
     }
     
-    if(tmp1.size() > 0){
-        
-        std::vector<int> tmp2;
-        
-        for(int i = 0;i < tmp1.size();i++){
-            relMin = (int) round(((needed/(double)totalLength) * (tmp1[i]/(double)totalLength)) *totalLength);
-            if(needed != totalLength){
-                min = (int) round(((minContigLength)/(double) (needed - minContigLength)) *(totalLength-tmp1[i]));
-            }
-            else{
-                min = 0;
-            }
-            if(min < tmp1[i]){
-                if(relMin > min){
-                    tmp2.push_back(relMin + (generator() % (tmp1[i] - relMin +1) ));
-                }
-                else{
-                    tmp2.push_back(min + (generator() % (tmp1[i] - min +1)));
-                }
-            }
-            else{
-                tmp2.push_back(0);
-            }
-        }
-        ges = accumulate(tmp2.begin(),tmp2.end(),0);
-        
-        if(ges == 0){
-            int x = 0;
-            int max = 0;
-            int nenn = 1;
-            while(tmp1[x] < needed){
-                x++;
-                if(tmp1[x] > tmp1[max]){
-                    max = x;
-                }
-                if(x == tmp1.size() -1){
-                    x = max;
-                    nenn = tmp1[x];
-                    break;
-                }
-            }
-            tmp2[x] = nenn;
-            ges = needed;
-        }
-        
-        for(int i = 0;i < tmp2.size();i++){
-            res[accession[i]] = (int) (needed* (tmp2[i]/(double)ges));
-            if(res[accession[i]] < minContigLength && debugInfo){
-                Rcout << whichToSmall << ": kleiner als minContigLength \n";
-                Rcout << "angefordert: " << needed << " Anteil(%): " << tmp2[i]/(double)ges << " Anteil(basen): " << res[accession[i]] << " Laenge: " << tmp1[i] << " Anzahl chrom groesser min: " << tmp1.size() << std::endl;
-            }
+    
+    
+    for(int i = 0;i < tmp1.size();i++){
+        share = tmp1[i]/minContigLength;
+        for(int j = 0;j < share;j++ ){
+            relFreq.push_back(i);
         }
         
     }
+    
+    bool noMore = false;
+    int count;
+    while(needed > 0 && noMore){
+        at = generator() %relFreq.size();
+        rF = next(relFreq.begin(),at);
+        
+        count = 0;
+        while(tmp1[(*rF)] < minContigLength && count < relFreq.size()){
+            rF++;
+            count++;
+            if(rF == relFreq.end()){
+                rF = relFreq.begin();
+            }
+            if(count == relFreq.size()){
+                noMore = true;
+            }
+        }
+        
+        draw = round(distr(generator));
+        
+        needed -= draw;
+        tmp1[(*rF)] -= draw;
+        res[accession[(*rF)]] += draw;
+        
+    }
+    
+    
     return res;
 }
 
@@ -306,7 +287,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             count++;
             tester++;
 
-            if((find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
+            if(which != lengthSums.end() && (find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
                 which++;
                 tester++;
                 count++;
@@ -362,7 +343,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
                     count++;
                     tester++;
 
-                    if((find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
+                    if(which != lengthSums.end() && (find_if((*tester).begin(),(*tester).end(),isBiggerMinL)) == (*tester).end()){
                         which++;
                         tester++;
                         count++;
@@ -396,13 +377,13 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             }
             std::list<std::vector<int> > re;
             accuContigs = 0;
-            chromBaseNrs = fromWhichHowMany(minContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i);
+            chromBaseNrs = fromWhichHowMany(minContigLength,meanContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i,debugInfo);
             justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
             if(justZero && debugInfo){
                 Rcout << *((*next(IDs.begin(),indicies[n])).begin()) << " " << i << " " << indicies[n] << " " << contPart << std::endl;
             }
-            if(!justZero){    
-                l = 0;
+            if(!justZero){
+                
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
                     
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
@@ -454,9 +435,9 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             Rcout << "-------------" << std::endl << std::endl;
         if(!justZero){    
             res.push_back(r);
-            baseNrs.clear();
-            indicies.clear();
         }
+        baseNrs.clear();
+        indicies.clear();
     }
     return res;
 }
