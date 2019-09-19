@@ -314,6 +314,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             
             if(which == lengthSums.end()){
                 which = lengthSums.begin();
+                tester = lengths.begin();
             }
         }
         
@@ -350,6 +351,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             while(((*which) < *prev(baseNrs.end()) && count < (int)lengthSums.size()) || which == totLen){
                 if(which == lengthSums.end()){
                     which = lengthSums.begin();
+                    tester = lengths.begin();
                 }
                 else{
                     
