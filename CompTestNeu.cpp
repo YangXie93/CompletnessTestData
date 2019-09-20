@@ -145,10 +145,10 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
     std::vector<int> res (lengths.size(),0);
     int share;
     int at;
-    int tmp;
-    int draw;
+    int tmp = needed;
+    int drawnNr;
     
-    std::vector<int> tmp1;
+    std::vector<int> chromsGreaterMin;
     std::vector<int> accession;
     std::vector<int> relFreq;
     relFreq.reserve(totalLength*2/minContigLength);
@@ -156,7 +156,7 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
 
     for(int i = 0;i < (int) lengths.size();i++){
         if(lengths[i] > minContigLength){
-            tmp1.push_back(lengths[i]);
+            chromsGreaterMin.push_back(lengths[i]);
             accession.push_back(i);
         }
         else{
@@ -167,13 +167,13 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
     if(totalLength < needed){
         needed = totalLength;
         if(debugInfo)
-            Rcout << whichToSmall << " die angefragte Menge ist nicht erreichbar\n";
+            Rcout << whichToSmall << ": die angefragte Menge ist nicht erreichbar\n";
     }
     
     
     
-    for(int i = 0;i < tmp1.size();i++){
-        share = round(tmp1[i]/minContigLength);
+    for(int i = 0;i < chromsGreaterMin.size();i++){
+        share = round(chromsGreaterMin[i]/minContigLength);
         for(int j = 0;j < share;j++ ){
             relFreq.push_back(i);
         }
@@ -182,14 +182,12 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
     
     bool noMore = false;
     int count;
-    while(needed > 0 && !noMore){
+    while(needed >= 0 && !noMore){
         at = generator() %relFreq.size();
         rF = next(relFreq.begin(),at);
         
-        Rcout << tmp1[(*rF)] << " " << (*rF) << std::endl;
-        
         count = 0;
-        while(tmp1[(*rF)] < minContigLength && count < relFreq.size()){
+        while(chromsGreaterMin[(*rF)] < minContigLength && count < relFreq.size()){
             rF++;
             count++;
             if(rF == relFreq.end()){
@@ -200,20 +198,22 @@ std::vector<int> fromWhichHowMany(int minContigLength, int meanContigLength,int 
             }
         }
         if(!noMore){
-            draw = round(distr(generator));
+            drawnNr = round(distr(generator));
             
-            if(draw > tmp1[(*rF)]){
-                draw = tmp1[(*rF)];
+            if(drawnNr > chromsGreaterMin[(*rF)]){
+                drawnNr = chromsGreaterMin[(*rF)];
             }
-            tmp1[(*rF)] -= draw;
+            chromsGreaterMin[(*rF)] -= drawnNr;
             
-            res[accession[(*rF)]] += draw;
+            res[accession[(*rF)]] += drawnNr;
 
             relFreq.erase(rF);
-            needed -= draw;
+            needed -= drawnNr;
         }
     }
-    
+    if(debugInfo){
+        Rcout << "gewollte Anzahl: " << tmp << " gezogene Anzahl: " << tmp - needed << std::endl << std::endl;
+    }
     
     return res;
 }
@@ -373,20 +373,25 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         
         for(n = 0; n < (int) baseNrs.size();n++){       // für completeness und contamination 
             
+            std::list<std::vector<int> > re;
+            accuContigs = 0;
+            
             if(debugInfo){
+                int accuChromBaseNrs = accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0);
                 if(n == 0){
-                    Rcout << i+1 << std::endl;
-                    Rcout << "comp: " << partCovered << std::endl;
+                    Rcout << i+1 << std::endl << std::endl;
+                    Rcout << "completeness: " << partCovered  << std::endl << std::endl;
                     Rcout << "Gesamtlaenge: " << (*totLen) << std::endl;
                 }
                 else{
-                    Rcout << "cont: " << contPart << std::endl; 
+                    Rcout << "contamination: " << contPart << std::endl << std::endl; 
                 }
             }
-            std::list<std::vector<int> > re;
-            accuContigs = 0;
+            
             chromBaseNrs = fromWhichHowMany(minContigLength,meanContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i,debugInfo);
             justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
+            
+            
             if(justZero && debugInfo){
                 Rcout << *((*next(IDs.begin(),indicies[n])).begin()) << " " << i << " " << indicies[n] << " " << contPart << std::endl;
             }
