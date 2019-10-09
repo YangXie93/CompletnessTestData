@@ -227,7 +227,7 @@ bool isBiggerMinL(int i){
 
 //' @export
 //[[Rcpp::export]]
-std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::vector<int> >& lengths,std::list<std::vector<int> > &IDs,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double>& comp,std::vector<double>& cont,int seed = 0,std::string distr = "normal",bool debugInfo = false){
+std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::vector<int> >& lengths,std::list<std::vector<int> > &IDs,std::vector<int>& lengthSums,int minContigLength,int meanContigLength,int number,std::vector<double> comp,std::vector<double> cont,int seed = 0,std::string distr = "normal",bool debugInfo = false){
     whichToSmall = 0;
     minL = minContigLength;
     
@@ -285,11 +285,14 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         
         //------------------------ Aussuchen des bin angebenden Genoms und der completness ----------------------
         
-        partCovered = ((comp[0] *100) + (generator() % (int)((comp[1]-comp[0]) *100)))/100.0;
+        
+        partCovered = ((comp[0] *100) + (generator() % (int)(round((comp[1]-comp[0]) *100))))/100.0;
+        
         testTmp = (generator() % lengthSums.size());
         which = next(lengthSums.begin(),testTmp);
         tester = next(lengths.begin(),testTmp);
         
+
         while(((*which)* partCovered) < minContigLength && count < (int)lengthSums.size()){
             which++;
             count++;
@@ -330,7 +333,6 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
         else{
             baseNrs.push_back((*totLen) *contPart);
         }
-        
         if(!contIsNull){
             count = 0;
             testTmp = (generator() % lengthSums.size());
@@ -361,8 +363,11 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             if(((*which) < *prev(baseNrs.end()) && count == (int)lengthSums.size()) || which == lengthSums.end() || which == totLen){
                 baseNrs.pop_back();
             }
+            else{
+                Rcout << baseNrs[1] << std::endl;
+            }
         }
-        
+        Rcout << baseNrs[0] << std::endl;
         //--------------------------------------------------------------------------------------------------------
         
         index = distance(lengthSums.begin(),which);
@@ -375,7 +380,6 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             
             std::list<std::vector<int> > re;
             accuContigs = 0;
-            
             if(debugInfo){
                 int accuChromBaseNrs = accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0);
                 if(n == 0){
@@ -391,14 +395,12 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             chromBaseNrs = fromWhichHowMany(minContigLength,meanContigLength,(*next(lengthSums.begin(),indicies[n])),(*next(lengths.begin(),indicies[n])),baseNrs[n],seed+i,debugInfo);
             justZero = (accumulate(chromBaseNrs.begin(),chromBaseNrs.end(),0) == 0);
             
-            
             if(justZero && debugInfo){
                 Rcout << *((*next(IDs.begin(),indicies[n])).begin()) << " " << i << " " << indicies[n] << " " << contPart << std::endl;
             }
             if(!justZero){
                 
                 for(j = 0; j < (int) chromBaseNrs.size();j++){      // für alle chromosomen
-                    
                     contigs = randomContigs(minContigLength,meanContigLength,chromBaseNrs[j],distr,seed+j+n+1);
                     if(debugInfo){
                         Rcout << " von: " << (*next(IDs.begin(),indicies[n]))[j] << " mit Laenge: " << (*next(lengths.begin(),indicies[n]))[j] << " nimm: " << chromBaseNrs[j] << std::endl;
@@ -454,3 +456,29 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
     }
     return res;
 }
+
+//[[Rcpp::export]]
+
+std::list<std::list<std::vector<int> > > singleGenomeMkContigs(std::vector<int> lengths,std::vector<int> IDs,double comp,int minContigLength,int meanContigLength,int seed = 0,std::string distr = "normal",bool debugInfo = false){
+    
+    std::list<std::list<std::vector<int> > > res;
+    
+    int lengthSum = accumulate(lengths.begin(),lengths.end(),0);
+    
+    std::list<std::vector<int> > wrapLengths;
+    wrapLengths.push_back(lengths);
+    
+    std::vector<int> wrapLengthSum;
+    wrapLengthSum.push_back(lengthSum);
+    
+    std::list<std::vector<int> > wrapIDs;
+    wrapIDs.push_back(IDs);
+    
+    
+    res = (*(mkContigs(wrapLengths,wrapIDs,wrapLengthSum,minContigLength,meanContigLength,1,{comp,comp+0.01},{1,0},seed,distr,debugInfo).begin()));
+    
+    return res;
+}
+
+
+
