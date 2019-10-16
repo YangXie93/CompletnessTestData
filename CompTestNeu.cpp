@@ -363,11 +363,7 @@ std::list<std::list<std::list<std::vector<int> > > > mkContigs(std::list<std::ve
             if(((*which) < *prev(baseNrs.end()) && count == (int)lengthSums.size()) || which == lengthSums.end() || which == totLen){
                 baseNrs.pop_back();
             }
-            else{
-                Rcout << baseNrs[1] << std::endl;
-            }
         }
-        Rcout << baseNrs[0] << std::endl;
         //--------------------------------------------------------------------------------------------------------
         
         index = distance(lengthSums.begin(),which);

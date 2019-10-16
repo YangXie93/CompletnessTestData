@@ -43,7 +43,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
         comp = list()
         cont = list()
         for(n in seq(1,(length(contigs[[i]][[1]])-2),3)){
-            comp[[j]] = IRanges(start = contigs[[i]][[1]][[n+1]],end = contigs[[i]][[1]][[n+2]],names = rep(contigs[[i]][[1]][[n]],length(contigs[[i]][[1]][[n+1]])))
+            comp[[j]] = IRanges(start = contigs[[i]][[1]][[n+1]],end = contigs[[i]][[1]][[n+2]],names = contigs[[i]][[1]][[n]])
             j = j +1
         }
         comp[[j]] = contigs[[i]][[1]][[n+3]]/contigs[[i]][[1]][[n+4]]
@@ -53,7 +53,7 @@ getContigsAsIRanges <- function(data,catalogue,minContigLength,meanContigLength,
         if(length(contigs[[i]]) > 1){
             j = 1
             for(n in seq(1,(length(contigs[[i]][[2]])-2),3)){
-                cont[[j]] = IRanges(start = contigs[[i]][[2]][[n+1]],end = contigs[[i]][[2]][[n+2]],names = rep(contigs[[i]][[2]][[n]],length(contigs[[i]][[2]][[n+1]])))
+                cont[[j]] = IRanges(start = contigs[[i]][[2]][[n+1]],end = contigs[[i]][[2]][[n+2]],names = contigs[[i]][[2]][[n]])
                 j = j +1
             }
             cont[[j]] = contigs[[i]][[2]][[n +3]]/contigs[[i]][[2]][[n+4]]
