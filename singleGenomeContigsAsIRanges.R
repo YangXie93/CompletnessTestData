@@ -5,19 +5,19 @@ getSingleGemomeContigsAsIRanges <- function(lengths,minContigLength,meanContigLe
     
     contigs = singleGenomeMkContigs(lengths,IDs,comp,minContigLength,meanContigLength,seed,distr,debugInfo)
     contranges = list()
-
-    n = 1
-    j = 2
-    p = 3
-    for(i in 1:((length(contigs[[1]])-2)/3)){
-        contranges[[i]] = IRanges(start = contigs[[1]][[j]],end = contigs[[1]][[p]],names = rep(contigs[[1]][[n]],length(contigs[[1]][[p]])))
-        p = p +3
-        j = j +3
-        n = n + 3
+    if(length(contigs ) >0){
+        n = 1
+        j = 2
+        p = 3
+        for(i in 1:((length(contigs[[1]])-2)/3)){
+            contranges[[i]] = IRanges(start = contigs[[1]][[j]],end = contigs[[1]][[p]],names = rep(contigs[[1]][[n]],length(contigs[[1]][[p]])))
+            p = p +3
+            j = j +3
+            n = n + 3
+        }
+        
+        print(paste("tatsaechliche comp: ",contigs[[1]][[length(contigs[[1]])-1]]/contigs[[1]][[length(contigs[[1]])]]))
     }
-    
-    print(paste("tatsaechliche comp: ",contigs[[1]][[length(contigs[[1]])-1]]/contigs[[1]][[length(contigs[[1]])]]))
-    
     return(contranges)
     
 }
