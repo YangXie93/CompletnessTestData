@@ -470,8 +470,11 @@ std::list<std::list<std::vector<int> > > singleGenomeMkContigs(std::vector<int> 
     std::list<std::vector<int> > wrapIDs;
     wrapIDs.push_back(IDs);
     
+    std::list<std::list<std::list<std::vector<int> > > > tmp = mkContigs(wrapLengths,wrapIDs,wrapLengthSum,minContigLength,meanContigLength,1,{comp,comp+0.01},{1,0},seed,distr,debugInfo);
     
-    res = (*(mkContigs(wrapLengths,wrapIDs,wrapLengthSum,minContigLength,meanContigLength,1,{comp,comp+0.01},{1,0},seed,distr,debugInfo).begin()));
+    if(tmp.size() > 0){
+        res = (*(tmp.begin()));
+    }
     
     return res;
 }

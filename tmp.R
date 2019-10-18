@@ -54,9 +54,6 @@ contigs.to.list <- function(contigs,pfams,j){
           this = pfams[[chromID[n]]]
           pfamRange = IRanges(start = this$start, end = this$end)
             
-          print(length(contigs[[i]][[j]]))
-          print(contigs[[i]][[j]][[n]])
-          print(paste(i,j,n))
           
           ol = findOverlaps(contigs[[i]][[j]][[n]], pfamRange)
           overlaps = overlapsRanges(contigs[[i]][[j]][[n]], pfamRange,hits = ol)
