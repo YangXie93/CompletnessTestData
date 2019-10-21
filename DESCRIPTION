@@ -1,9 +1,0 @@
-Package: CompletenessTestData
-Title: A package for the creation of labled metagenomic bins
-Version: 0.1
-Authors@R: person("Yang","Xie",email = "yang.xie@stud.uni-goettingen.de",role = c("aut","cre"))
-Description: This package generates Metagenome bins which can be used to train programms for anticipating genome completeness
-Depends: R (>= 3.1.0),data.table,Rcpp
-Imports: data.table,Rcpp
-RoxygenNote: 6.1.1
-LinkingTo: Rcpp
