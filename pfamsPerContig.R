@@ -1,4 +1,4 @@
-getContigsAsIRanges3 <- function(data,catalogue,minContigLength,meanContigLength,comp = c(0.6,1),cont = c(0,0.4),number,seed,distr = "normal",debugInfo = FALSE){
+getContigsAsIRanges3 <- function(data,catalogue,minContigLength,meanContigLength,comp = c(0.6,1),cont = c(0,0.4),number = 1,seed,distr = "normal",debugInfo = FALSE){
     
     library("data.table")
     library("IRanges")
@@ -39,7 +39,8 @@ getContigsAsIRanges3 <- function(data,catalogue,minContigLength,meanContigLength
         for(j in 1:length(contigs[[i]])){
             for(n in seq(1,(length(contigs[[i]][[j]])-2),3)){
                 for(m in 1:length(contigs[[i]][[j]][[n+1]])){
-                    comp[[1]] = list(IRanges(start = contigs[[i]][[j]][[n+1]][m],end = contigs[[i]][[j]][[n+2]][m]),contigs[[i]][[j]][[n+3]]/contigs[[i]][[j]][[n+4]],contigs[[i]][[j]][[n]])
+                    comp[[1]] = list(IRanges(start = contigs[[i]][[j]][[n+1]][m],end = contigs[[i]][[j]][[n+2]][m]),contigs[[i]][[j]][[length(contigs[[i]][[j]]) -1]]/contigs[[i]][[j]][[length(contigs[[i]][[j]])]],contigs[[i]][[j]][[n]])
+                    
                     contranges[[q]] = comp
                     q = q +1
 
@@ -61,7 +62,7 @@ pfamsPerContig <- function(pfams,catalogue,minContigLength,meanContigLength,comp
     res = list()
     
     contigs = getContigsAsIRanges3(pfams,catalogue,minContigLength ,meanContigLength,comp,cont,1,seed)
-    print(head(contigs))
+    # print(head(contigs))
     print("start overlap detection")
     
     xL = list(); yL = list(); zL = list(); nL = list(); iL = list()
@@ -73,7 +74,6 @@ pfamsPerContig <- function(pfams,catalogue,minContigLength,meanContigLength,comp
     #do all Completness
     j = 1
     LL = contigs.to.list(contigs,pfams,j)
-    str(LL)
     xL[[j]] = LL[[1]]; yL[[j]] = LL[[2]]; zL[[j]] = LL[[3]]; nL[[j]] = LL[[4]]; iL[[j]] = LL[[5]];
     j = 2
     LL = contigs.to.list(contigs,pfams,j)
@@ -86,24 +86,20 @@ pfamsPerContig <- function(pfams,catalogue,minContigLength,meanContigLength,comp
     
     print("building dt")
     comp.dt = data.table(x = unlist(xL[[1]]), y = unlist(yL[[1]]), z = unlist(zL[[1]]), n = unlist(nL[[1]]), i = unlist(iL[[1]]))
-    cont.dt = data.table(x = unlist(xL[[2]]), y = unlist(yL[[2]]), z = unlist(zL[[2]]), n = unlist(nL[[2]]), i = unlist(iL[[2]]))
+    #cont.dt = data.table(x = unlist(xL[[2]]), y = unlist(yL[[2]]), z = unlist(zL[[2]]), n = unlist(nL[[2]]), i = unlist(iL[[2]]))
     
     
     print("end building dt")
     print(Sys.time() -x)
     
     print("start counting")
-    
-    print(comp.dt)
-    print(cont.dt)
+
     
     comp.cdt = comp.dt[,.(N = .N, s = sum(z)), by = .(x,y,n,i)]
     # cont.cdt = cont.dt[,.(N = .N, s = sum(z)), by = .(x,y,n,i)]
     comp.cdt2 = comp.cdt[,.(pCount = .N, pLen = sum(s)),by = .(i,y)]
     # cont.cdt2 = cont.cdt[,.(pCount = .N, pLen = sum(s)),by = .(i,y)]
 
-    print(comp.cdt)
-    # print(cont.cdt)
     
     setkey(comp.cdt2,i)
     # setkey(cont.cdt2,i)
@@ -123,7 +119,7 @@ pfamsPerContig <- function(pfams,catalogue,minContigLength,meanContigLength,comp
     AAV =
         sapply(1:length(contigs), function(i) {
             gi = as.character(contigs[[i]][[1]][[length(contigs[[i]][[1]])]][[1]])
-            cat(gi,'\n')
+            # cat(gi,'\n')
             return(gi[1])
             #catalogue[GI.Vec == gi,comb]
         })
@@ -152,10 +148,10 @@ pfamsPerContig <- function(pfams,catalogue,minContigLength,meanContigLength,comp
             
             return(0)
         })
-    print(AAV)
+    # print(AAV)
     AAV = match(AAV,catalogue$GI.Vec)
     
-    print(AAV)
+    # print(AAV)
     
     AAV = catalogue$comb[AAV]
     AAV[is.na(AAV)] = -1
@@ -168,7 +164,7 @@ pfamsPerContig <- function(pfams,catalogue,minContigLength,meanContigLength,comp
     print(Sys.time() -x)
     
     print(Sys.time() -x)
-    return(list(values = L.Comp,compComb.Nr = AAV, comp = ABV,comp.GI = ACV,cont = ADV))
+    return(list(values = L.Comp,GI.Vec = ACV, comp = ABV[1]))
 }
 
 
@@ -219,11 +215,9 @@ contigs.to.list <- function(contigs,pfams,j){
     for (i in 1:2){
         xL[[i]] = list();      yL[[i]] = list();      zL[[i]] = list();      nL[[i]] = list();      iL[[i]] = list()
     }
-    print(j)
     if (j == 1){
         for(i in 1:length(contigs)){
             chromID = as.character(contigs[[i]][[j]][[length(contigs[[i]][[j]])]])
-            print(chromID)
             for(n in 1:(length(contigs[[i]][[j]]) -2)){
                 this = pfams[[chromID[n]]]
                 pfamRange = IRanges(start = this$start, end = this$end)
@@ -251,7 +245,6 @@ contigs.to.list <- function(contigs,pfams,j){
         for(i in 1:length(contigs)){
             if (length(contigs[[i]]) == 2){
                 chromID = as.character(contigs[[i]][[j]][[length(contigs[[i]][[j]])]])
-                print(chromID)
                 for(n in 1:(length(contigs[[i]][[j]]) -2)){
                     this = pfams[[chromID[n]]]
                     pfamRange = IRanges(start = this$start, end = this$end)
@@ -285,7 +278,7 @@ cdt.to.list <- function(cdt){
     EndsVec = c(EndsVec,length(cdt$i))
     
     maxi = max(cdt$i)
-    
+
     L <- vector(mode = 'list', length = maxi)
     
     for (iter in 1:length(StartsVec)){
